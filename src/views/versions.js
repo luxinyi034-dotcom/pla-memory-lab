@@ -17,7 +17,7 @@ export const versionsView = {
     return `<div class="page page-versions">
       ${pageHead({ eyebrow: 'VERSIONS', title: '版本目录', sub: '每次大改版前都会把当时的网站完整存档在这里，可以随时打开使用和对比。所有版本共用同一份学习数据。' })}
       <div class="result-list">
-        <div class="word-row"><span class="word-main"><span class="word-en">最新版</span><span class="word-zh">正在使用的版本</span></span><span class="tag is-ok">当前</span></div>
+        <div class="word-row"><span class="word-main"><span class="word-en">v2 纸本版</span><span class="word-zh">正在使用 · 暖白纸面 + 砖红点缀，学习页全屏专注</span></span><span class="tag is-ok">当前</span></div>
         ${VERSIONS.map(version => `<a class="word-row" href="${version.href}">
           <span class="word-main" style="flex-direction:column;gap:2px"><span class="word-en">${version.name} <small class="muted">· ${version.date} 存档</small></span>
           ${version.notes.map(note => `<span class="word-zh">${note}</span>`).join('')}</span>

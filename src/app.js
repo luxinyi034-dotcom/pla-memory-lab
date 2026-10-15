@@ -2,14 +2,14 @@
 import { store } from './store.js';
 import { $, esc, icon, toast } from './ui/dom.js';
 import { todayKey } from './core/time.js';
-import { dueExpressions } from './core/selectors.js';
+import { dueExpressions, streak } from './core/selectors.js';
 import { views } from './views/index.js';
 
 const NAV = [
   ['today', '今日学习', 'today', '#/today'],
   ['library', '表达库', 'library', '#/library'],
   ['plan', '掌握与计划', 'plan', '#/plan'],
-  ['quick', '快速刷词与错词本', 'quick', '#/quick'],
+  ['quick', '快速刷词', 'quick', '#/quick'],
   ['favorites', '我的收藏', 'favorites', '#/favorites'],
   ['checkin', '打卡日历', 'checkin', '#/checkin'],
   ['settings', '设置', 'settings', '#/settings'],
@@ -62,11 +62,14 @@ function renderNav(activeArea) {
   const wrong = store.state.wrongBook.length;
   const checked = store.state.checkins.includes(today);
   $('#nav').innerHTML = NAV.map(([area, label, iconName, href]) => {
-    const badge = area === 'today' && due ? `<span class="nav-badge" title="今日待复习">${due}</span>`
-      : area === 'quick' && wrong ? `<span class="nav-badge is-soft" title="错词本">${wrong}</span>`
-      : area === 'checkin' && checked ? `<span class="nav-dot" title="今日已打卡"></span>` : '';
-    return `<a href="${href}" class="nav-item ${activeArea === area ? 'is-active' : ''}" ${activeArea === area ? 'aria-current="page"' : ''}>${icon(iconName)}<span class="nav-label">${label}</span>${badge}</a>`;
+    const badge = area === 'today' && due ? `<small class="nav-count is-accent" title="今日待复习">${due}</small>`
+      : area === 'library' ? `<small class="nav-count">${store.state.expressions.length}</small>`
+      : area === 'quick' && wrong ? `<small class="nav-count" title="错词本">${wrong}</small>`
+      : area === 'favorites' && store.state.favorites.length ? `<small class="nav-count">${store.state.favorites.length}</small>` : '';
+    return `<a href="${href}" class="nav-item ${activeArea === area ? 'is-active' : ''}" ${activeArea === area ? 'aria-current="page"' : ''}><span class="nav-label">${label}</span>${badge}</a>`;
   }).join('');
+  const foot = $('#side-foot');
+  if (foot) foot.innerHTML = `<b>${streak(store.state.checkins, today)}</b>天连续打卡${checked ? '' : ' · 今日未打卡'}<br />累计 ${store.state.checkins.length} 天<br /><a href="#/versions">版本目录</a>`;
 }
 
 export function render({ keepScroll = false } = {}) {
@@ -85,6 +88,7 @@ export function render({ keepScroll = false } = {}) {
     if (redirect) { go(redirect, { replace: true }); return; }
   }
   current = { view, route, ctx };
+  document.body.classList.toggle('is-focus', Boolean(view.focus));
   renderNav(view.area ?? route.name);
   let html;
   try { html = view.render(ctx); }

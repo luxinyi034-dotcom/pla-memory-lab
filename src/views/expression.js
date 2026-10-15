@@ -7,6 +7,7 @@ import { REVIEW_INTERVALS, NODE_LABELS, nodeStatus, nodeDueDay, nextDueDay } fro
 import { gradeAnswer } from '../core/grading.js';
 import { toggleFavorite, updateExpression, deleteExpression, addExpression, createGroup } from '../core/actions.js';
 import { pageHead, expressionInfo, masteryPill, answerReview, writingBox, segmented, categoryBadge } from './common.js';
+import { focusTop } from './study.js';
 
 const fromOf = (ctx, fallback = '#/library') => ctx.route.query.get('from') || fallback;
 const fromLabel = from => {
@@ -242,6 +243,7 @@ export const addView = {
 
 export const practiceView = {
   area: 'library',
+  focus: true,
   title: '默写练习',
   initialUI: { id: null, phase: 'writing', answer: '', correct: null },
   guard: ctx => (ctx.ix.exprById.has(ctx.route.params[0]) ? null : fromOf(ctx)),
@@ -251,16 +253,17 @@ export const practiceView = {
     if (ui.id !== id) Object.assign(ui, { id, phase: 'writing', answer: '', correct: null });
     const expression = ix.exprById.get(id);
     const from = fromOf(ctx);
-    return `<div class="page page-study">
-      ${pageHead({ backHref: from, backLabel: fromLabel(from), eyebrow: 'PRACTICE', title: '默写练习', sub: '只用于巩固，不改变掌握度、复习计划或错词本。' })}
-      <section class="study-card ${ui.phase === 'result' ? (ui.correct ? 'is-correct' : 'is-wrong') : 'is-dictation'}">
-        <div class="prompt-label">根据中文写出英文表达</div>
-        <div class="prompt-chinese">${esc(expression.chinese)}</div>
+    return `<div class="focus-page">
+      ${focusTop({ exitHref: from, exitLabel: fromLabel(from), meta: '默写练习 · <b>不改变掌握度、复习计划或错词本</b>' })}
+      <section class="focus-stage is-wide">
+        <div class="kicker">根据中文写出英文表达</div>
+        <div class="focus-chinese">${esc(expression.chinese)}</div>
         ${ui.phase === 'result'
-          ? `<div class="result-banner ${ui.correct ? 'is-ok' : 'is-wrong'}">${icon(ui.correct ? 'check' : 'x')}<span>${ui.correct ? '写对了' : '再看一眼'}</span></div>
-             ${answerReview(ui.answer, expression.english, ui.correct)}
-             <div class="study-actions"><button type="button" class="btn btn-ghost" data-action="retry">再练一次</button><a class="btn btn-primary" href="${esc(from)}">完成</a></div>`
-          : `${writingBox('answer', ui.answer)}<div class="study-actions"><button type="button" class="btn btn-primary btn-large" data-action="submit">提交</button></div>`}
+          ? `${answerReview(ui.answer, expression.english, ui.correct)}
+             <div class="verdict ${ui.correct ? 'is-ok' : ''}"><i></i>${ui.correct ? '写对了' : '再看一眼'}</div>
+             <div class="focus-actions"><button type="button" class="btn btn-large" data-action="retry">再练一次</button><a class="btn btn-primary btn-large" href="${esc(from)}">完成</a></div>`
+          : `<div class="answer-block"><div class="answer-label"><span>你的答案</span><span>回车提交</span></div>${writingBox('answer', ui.answer, '在这里写英文（键盘或 Apple Pencil）')}</div>
+             <div class="focus-actions"><button type="button" class="btn btn-primary btn-large" data-action="submit">提交<kbd>↵</kbd></button></div>`}
       </section>
     </div>`;
   },
