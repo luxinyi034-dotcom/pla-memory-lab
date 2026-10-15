@@ -17,7 +17,7 @@ export function defaultState() {
     groups: [], expressions: [], progress: [],
     wrongBook: [], favorites: [], checkins: [], makeupCheckins: [],
     sessions: [], quickReviewSessions: {}, wrongDictationSession: null,
-    dailyMistakes: {}, navigationMemory: {}, migrations: {},
+    dailyMistakes: {}, navigationMemory: {}, migrations: {}, pausedDays: [], checkinBackfills: {},
     settings: { ...DEFAULT_SETTINGS },
   };
 }
@@ -58,6 +58,8 @@ export function normalizeState(input) {
   for (const key of ['quickReviewSessions', 'dailyMistakes', 'navigationMemory']) {
     if (!isObject(state[key])) state[key] = {};
   }
+  state.pausedDays = Array.isArray(state.pausedDays) ? [...new Set(state.pausedDays.filter(day => /^\d{4}-\d{2}-\d{2}$/.test(day)))].sort() : [];
+  state.checkinBackfills = isObject(state.checkinBackfills) ? state.checkinBackfills : {};
   state.wrongDictationSession = isObject(state.wrongDictationSession) ? state.wrongDictationSession : null;
   state.settings = { ...DEFAULT_SETTINGS, ...(isObject(state.settings) ? state.settings : {}) };
   state.schemaVersion ??= SCHEMA_VERSION;
@@ -140,7 +142,7 @@ function mergeById(current, incoming, key = 'id') {
   return { list: result, added, updated };
 }
 
-const KNOWN_KEYS = new Set(['groups', 'expressions', 'progress', 'checkins', 'favorites', 'makeupCheckins', 'wrongBook',
+const KNOWN_KEYS = new Set(['pausedDays', 'checkinBackfills', 'groups', 'expressions', 'progress', 'checkins', 'favorites', 'makeupCheckins', 'wrongBook',
   'dailyMistakes', 'sessions', 'quickReviewSessions', 'wrongDictationSession', 'settings', 'migrations', 'navigationMemory', 'schemaVersion']);
 
 /**
@@ -182,6 +184,8 @@ export function mergeImport(currentInput, payload) {
   next.wrongDictationSession = imported.wrongDictationSession ?? current.wrongDictationSession;
   next.settings = { ...current.settings, ...imported.settings };
   next.migrations = { ...current.migrations, ...imported.migrations };
+  next.pausedDays = [...new Set([...current.pausedDays, ...imported.pausedDays])].sort();
+  next.checkinBackfills = { ...current.checkinBackfills, ...imported.checkinBackfills };
   next.navigationMemory = current.navigationMemory;
   next.schemaVersion = current.schemaVersion ?? SCHEMA_VERSION;
 
@@ -246,4 +250,43 @@ export async function buildExport(state, exportedAt = new Date().toISOString()) 
     contentHash: await contentHash(state),
     state: clone(state),
   };
+}
+
+// ---------- One-off data migrations ----------
+
+export const GAP_MIGRATION = 'gap-pause-2026-10-07-v1';
+const GAP_FROM = '2026-10-07';
+const GAP_TO = '2026-10-14';
+
+function daysBetween(from, to) {
+  const out = []; const end = Date.parse(`${to}T00:00:00Z`);
+  for (let t = Date.parse(`${from}T00:00:00Z`); t <= end; t += 86400000) out.push(new Date(t).toISOString().slice(0, 10));
+  return out;
+}
+
+/**
+ * The learner took a break from 2026-10-07 to 2026-10-14 and came back to
+ * every review overdue. This (a) fills in the missing check-ins for those days
+ * and (b) stops those days from counting towards review due dates, as if the
+ * break never happened. Learning records (first-learned time, mastery,
+ * attempts, error counts) are untouched. Runs once per data set.
+ */
+export function applyGapMigration(state, { now = new Date().toISOString() } = {}) {
+  state.migrations ??= {};
+  if (state.migrations[GAP_MIGRATION]) return null;
+  const hasLearning = state.progress.some(item => item.firstLearnedAt);
+  if (!hasLearning) { state.migrations[GAP_MIGRATION] = 'not-needed'; return null; }
+
+  const days = daysBetween(GAP_FROM, GAP_TO);
+  // A day with real learning (a first learning event) is never paused.
+  const learnedDays = new Set(state.progress.filter(item => item.firstLearnedAt).map(item => item.firstLearnedAt.slice(0, 10)));
+  const paused = days.filter(day => !learnedDays.has(day));
+  const missing = days.filter(day => !state.checkins.includes(day));
+
+  state.pausedDays = [...new Set([...(state.pausedDays ?? []), ...paused])].sort();
+  state.checkinBackfills ??= {};
+  for (const day of missing) { state.checkins.push(day); state.checkinBackfills[day] = now; }
+  state.checkins = [...new Set(state.checkins)].sort();
+  state.migrations[GAP_MIGRATION] = now;
+  return { paused: paused.length, checkinsAdded: missing.length };
 }

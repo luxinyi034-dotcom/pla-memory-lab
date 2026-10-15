@@ -5,6 +5,7 @@ import { quickQueue, sectionByGroup, todayNewItems, todayReviewedItems } from '.
 import { openQuickSession, decideQuick, toggleReveal, quickDone, openWrongDictation, submitWrongDictation, advanceWrongDictation } from '../core/drills.js';
 import { removeFromWrongBook } from '../core/actions.js';
 import { pageHead, emptyState, answerReview, writingBox, progressBar } from './common.js';
+import { focusTop } from './study.js';
 
 const SOURCES = { today: '今日内容', all: '全部已学' };
 
@@ -251,6 +252,7 @@ export const quickRunView = {
 
 export const wrongDictationView = {
   area: 'quick',
+  focus: true,
   title: '错词默写',
   initialUI: { session: null },
   render(ctx) {
@@ -263,40 +265,48 @@ export const wrongDictationView = {
     while (session.phase === 'writing' && session.queue.length && !state.wrongBook.some(entry => entry.expressionID === session.queue[session.index])) {
       ui.session = session = ctx.store.commit(s => { session.index -= 1; return advanceWrongDictation(s, session); }, { silent: true });
     }
-    const head = (sub = '') => pageHead({ backHref: '#/quick', backLabel: '退出（已保存）', eyebrow: `WRONG BOOK · 第 ${session.pass} 轮`, title: '错词默写', sub: sub || '只用于消灭错词，不改变掌握度、复习计划和快速刷词进度。' });
+    const remaining = state.wrongBook.length;
+    const head = focusTop({
+      exitHref: '#/quick', exitLabel: '退出',
+      meta: `错词默写 · 第 ${session.pass} 轮 · <b>错词本剩余 ${remaining} 条</b>`,
+      steps: session.retryQueue.length ? `<span>下一轮 ${session.retryQueue.length} 条</span>` : '',
+      done: session.cleared ?? 0, total: session.totalAtStart || 1,
+    });
     if (session.phase === 'complete' || !session.queue.length) {
-      return `<div class="page page-study">${head()}
-        <section class="study-card is-complete">
-          <div class="complete-mark">${icon('check')}</div>
-          <h2>${session.totalAtStart ? '错词本已清空' : '错词本是空的'}</h2>
-          <p class="muted">${session.totalAtStart ? `${session.totalAtStart} 条，共进行了 ${session.pass} 轮。` : '在快速刷词中右滑“不熟悉”的表达会进入错词本。'}</p>
-          <div class="study-actions"><button type="button" class="btn btn-primary" data-action="exit">返回</button></div>
+      return `<div class="focus-page">${head}
+        <section class="focus-stage is-wide">
+          <div class="kicker">完成</div>
+          <h2 class="focus-title">${session.totalAtStart ? '错词本已清空' : '错词本是空的'}</h2>
+          <p class="focus-note">${session.totalAtStart ? `${session.totalAtStart} 条，共进行了 ${session.pass} 轮。` : '在快速刷词中右滑“不熟悉”的表达会进入错词本。'}</p>
+          <div class="focus-actions"><button type="button" class="btn btn-primary btn-large" data-action="exit">返回</button></div>
         </section></div>`;
     }
     const id = session.queue[session.index];
     const expression = ix.exprById.get(id);
-    const remaining = state.wrongBook.length;
-    const top = `<div class="dictation-meta"><span>本轮 ${session.index + 1} / ${session.queue.length}</span><span>错词本剩余 ${remaining} 条</span>${session.retryQueue.length ? `<span>下一轮 ${session.retryQueue.length} 条</span>` : ''}</div>`;
+    const kicker = `本轮 ${session.index + 1} / ${session.queue.length}`;
     if (session.phase === 'result') {
       const last = session.index + 1 >= session.queue.length;
-      return `<div class="page page-study">${head()}${top}
-        <section class="study-card is-result ${session.correct ? 'is-correct' : 'is-wrong'}">
-          <div class="result-banner ${session.correct ? 'is-ok' : 'is-wrong'}">${icon(session.correct ? 'check' : 'x')}<span>${session.correct ? '写对了，已从错词本移除' : '没写对，下一轮再来'}</span></div>
-          <div class="result-english">${esc(expression?.english ?? '')}</div>
-          <div class="meaning-box">${esc(expression?.chinese ?? '')}</div>
+      return `<div class="focus-page">${head}
+        <section class="focus-stage is-wide">
+          <div class="kicker">${kicker}</div>
+          <div class="focus-chinese">${esc(expression?.chinese ?? '')}</div>
           ${answerReview(session.answer, expression?.english ?? '', session.correct)}
-          <div class="study-actions">
-            <a class="btn btn-ghost" href="${ctx.withFrom(`#/detail/${id}`, '#/wrong-dictation')}">查看详情</a>
-            <button type="button" class="btn btn-primary btn-large" data-action="next" data-autofocus>${last ? (session.retryQueue.length ? '进入下一轮' : '完成') : '下一条'} ${icon('chevron')}</button>
+          <div class="verdict ${session.correct ? 'is-ok' : ''}"><i></i>${session.correct ? '写对了，已从错词本移除' : '没写对，下一轮再来'}</div>
+          <div class="focus-actions">
+            <a class="btn btn-large" href="${ctx.withFrom(`#/detail/${id}`, '#/wrong-dictation')}">查看详情</a>
+            <button type="button" class="btn btn-primary btn-large" data-action="next" data-autofocus>${last ? (session.retryQueue.length ? '进入下一轮' : '完成') : '下一条'}<kbd>↵</kbd></button>
           </div>
         </section></div>`;
     }
-    return `<div class="page page-study">${head()}${top}
-      <section class="study-card is-dictation">
-        <div class="prompt-label">根据中文写出英文表达</div>
-        <div class="prompt-chinese">${esc(expression?.chinese ?? '')}</div>
-        ${writingBox('answer', session.draft ?? '')}
-        <div class="study-actions"><button type="button" class="btn btn-primary btn-large" data-action="submit">提交答案</button></div>
+    return `<div class="focus-page">${head}
+      <section class="focus-stage is-wide">
+        <div class="kicker">${kicker} · 只用于消灭错词，不改变掌握度和复习计划</div>
+        <div class="focus-chinese">${esc(expression?.chinese ?? '')}</div>
+        <div class="answer-block">
+          <div class="answer-label"><span>你的答案</span><span>忽略大小写与标点 · 回车提交</span></div>
+          ${writingBox('answer', session.draft ?? '', '在这里写英文（键盘或 Apple Pencil）')}
+        </div>
+        <div class="focus-actions"><button type="button" class="btn btn-primary btn-large" data-action="submit">提交<kbd>↵</kbd></button></div>
       </section></div>`;
   },
   mount(root, ctx) {

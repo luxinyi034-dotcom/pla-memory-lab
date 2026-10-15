@@ -6,6 +6,7 @@ import { detailView, editView, addView, practiceView } from './expression.js';
 import { planView } from './plan.js';
 import { quickHubView, quickRunView, wrongDictationView } from './quick.js';
 import { favoritesView, checkinView, settingsView } from './misc.js';
+import { versionsView } from './versions.js';
 
 // Route name (first hash segment) → view.
 export const views = {
@@ -25,4 +26,5 @@ export const views = {
   favorites: favoritesView,
   checkin: checkinView,
   settings: settingsView,
+  versions: versionsView,
 };

@@ -22,7 +22,7 @@ function groupCard(ctx, group, index) {
   const learned = items.filter(item => isLearned(ix, item.id)).length;
   const open = ui.open.includes(group.id);
   const selected = ui.selected.includes(group.id);
-  return `<article class="group-card ${open ? 'is-open' : ''} ${selected ? 'is-selected' : ''}" data-group-id="${group.id}">
+  return `<article class="group-card is-${group.category} ${open ? 'is-open' : ''} ${selected ? 'is-selected' : ''}" data-group-id="${group.id}" style="--learned:${items.length ? Math.round(learned / items.length * 100) : 0}%">
     <div class="group-head" data-drag-handle>
       ${ui.manage ? `<button type="button" class="checkbox-btn" data-action="select" data-id="${group.id}" aria-pressed="${selected}"><span class="checkbox">${selected ? icon('check') : ''}</span></button>` : ''}
       <button type="button" class="group-toggle" data-action="toggle" data-id="${group.id}" aria-expanded="${open}"><span class="chev">${icon('chevron')}</span></button>

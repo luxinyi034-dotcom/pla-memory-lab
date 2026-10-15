@@ -25,6 +25,22 @@ export function dayKey(value = nowMs()) {
 
 export function todayKey() { return dayKey(nowMs()); }
 
+// Paused days: days the learner was away. They do not count when working out
+// when a review falls due, so a break never turns every review overdue at once.
+let pausedSet = new Set();
+export function setPausedDays(days) { pausedSet = new Set(days ?? []); }
+export function pausedDays() { return [...pausedSet]; }
+
+/** Move forward `n` days from `key`, not counting paused days. */
+export function addActiveDays(key, n) {
+  let cursor = key; let left = n;
+  while (left > 0) {
+    cursor = addDaysKey(cursor, 1);
+    if (!pausedSet.has(cursor)) left -= 1;
+  }
+  return cursor;
+}
+
 /** Add whole days to a YYYY-MM-DD key. */
 export function addDaysKey(key, days) {
   const [y, m, d] = key.split('-').map(Number);

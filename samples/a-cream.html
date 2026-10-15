@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>样稿 A · 奶油手账</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Jost:wght@400;500;600&family=Noto+Serif+SC:wght@600;700&display=swap" />
+<style>
+:root{--cream:#F7F0E3;--paper:#FCF8F0;--ink:#33302E;--soft:#7C736C;--line:#E4D9C8;--coral:#C95F48;--coral-d:#A94B37;--salmon:#EDA597;--blush:#F8DED5;--sage:#7E9A82;
+--serif:"DM Serif Display",Georgia,serif;--zh-serif:"Noto Serif SC","Songti SC",serif;--sans:Jost,"PingFang SC","Noto Sans SC",system-ui,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{background:var(--cream);color:var(--ink);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.app{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+/* sidebar */
+.side{padding:30px 18px;display:flex;flex-direction:column;gap:26px;border-right:2px solid var(--ink)}
+.brand{display:flex;align-items:center;gap:10px;padding-left:6px}
+.brand b{font-family:var(--serif);font-weight:400;font-size:22px;line-height:1}
+.nav{display:flex;flex-direction:column;gap:6px}
+.nav a{display:flex;align-items:center;gap:10px;height:46px;padding:0 16px;border-radius:23px;font-size:15px;color:var(--soft)}
+.nav a.on{background:var(--coral);color:var(--paper);font-weight:500}
+.nav a .n{margin-left:auto;font-size:12px;min-width:26px;height:22px;border-radius:11px;display:grid;place-items:center;border:1.5px solid currentColor}
+.nav a.on .n{border-color:var(--paper)}
+.side .foot{margin-top:auto;font-size:12px;color:var(--soft);padding-left:8px}
+/* main */
+main{padding:30px 40px 40px;display:flex;flex-direction:column;gap:22px}
+.head{display:flex;align-items:flex-end;justify-content:space-between}
+.eyebrow{font-size:13px;letter-spacing:.14em;color:var(--soft);text-transform:uppercase}
+h1{margin:4px 0 0;font-family:var(--zh-serif);font-size:44px;line-height:1.15;letter-spacing:.02em}
+h1 em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--coral);font-size:34px;margin-left:12px}
+.pill{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 20px;border:2px solid var(--ink);border-radius:22px;font-weight:500;background:transparent;font-size:15px}
+.pill.fill{background:var(--ink);color:var(--paper)}
+.pill.cream{border-color:var(--paper);color:var(--paper)}
+.streak{display:flex;gap:10px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--coral)}
+/* hero row */
+.row{display:grid;grid-template-columns:1.35fr 1fr;gap:18px}
+.hero{position:relative;background:var(--coral);color:var(--paper);border-radius:30px;padding:24px 30px;min-height:250px;overflow:hidden;display:flex;flex-direction:column}
+.hero .k{font-size:13px;letter-spacing:.14em;opacity:.85}
+.hero .big{font-family:var(--serif);font-size:84px;line-height:1;margin:10px 0 4px}
+.hero .big small{font-family:var(--sans);font-size:18px;margin-left:8px;opacity:.9}
+.hero p{margin:0;max-width:250px;opacity:.92}
+.hero .go{margin-top:auto;display:flex;gap:10px}
+.hero .art{position:absolute;right:-6px;bottom:-14px}
+.hero .nodes{display:flex;gap:6px;margin-top:14px}
+.hero .nodes span{font-size:12px;padding:3px 10px;border-radius:12px;border:1.5px solid rgba(252,248,240,.7)}
+.hero .nodes span.d{background:var(--paper);color:var(--coral-d);border-color:var(--paper)}
+.card{background:var(--paper);border:2px solid var(--ink);border-radius:30px;padding:24px 26px;display:flex;flex-direction:column;gap:14px}
+.card h2{margin:0;font-family:var(--zh-serif);font-size:24px}
+.card .k{font-size:13px;letter-spacing:.14em;color:var(--soft)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{height:38px;padding:0 13px;border-radius:19px;border:2px solid var(--ink);display:inline-flex;align-items:center;font-size:14px;font-weight:500}
+.chip.on{background:var(--coral);border-color:var(--coral);color:var(--paper)}
+.chip.soft{border-color:var(--line);color:var(--soft)}
+.card .go{margin-top:auto;display:flex;justify-content:space-between;align-items:center}
+/* bottom row */
+.row2{display:grid;grid-template-columns:330px 1fr;gap:18px}
+.ring{flex-direction:row!important;align-items:center;gap:20px}
+.ring svg{flex:none}
+.ring .num{font-family:var(--serif);font-size:38px;line-height:1}
+.ring .num small{font-family:var(--sans);font-size:15px;color:var(--soft)}
+.ring ul{list-style:none;margin:6px 0 0;padding:0;font-size:13.5px;color:var(--soft)}
+.ring li::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;background:var(--coral)}
+.ring li.b::before{background:var(--salmon)}
+.ring li.c::before{background:var(--line)}
+.words{gap:12px}
+.words .top{display:flex;justify-content:space-between;align-items:center}
+.seg{display:inline-flex;border:2px solid var(--ink);border-radius:20px;padding:2px}
+.seg span{height:32px;padding:0 14px;border-radius:16px;display:inline-flex;align-items:center;font-size:13.5px}
+.seg span.on{background:var(--ink);color:var(--paper)}
+.gl{display:flex;flex-wrap:wrap;gap:8px}
+.g{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 6px 0 16px;border-radius:20px;border:2px solid var(--ink);font-size:14px;background:var(--paper)}
+.g i{font-style:normal;font-size:12px;min-width:26px;height:26px;border-radius:13px;background:var(--cream);display:grid;place-items:center}
+.g.done{background:var(--blush);border-color:var(--blush)}
+.g.done i{background:var(--paper);color:var(--coral-d)}
+.g.new{border-color:var(--coral);color:var(--coral-d)}
+.label{font-size:12.5px;letter-spacing:.12em;color:var(--soft);margin:2px 0 -2px}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><span data-art="logo"></span><b>PLA Lab</b></div>
+    <nav class="nav">
+      <a class="on">今日学习 <span class="n">109</span></a><a>表达库</a><a>掌握与计划</a><a>快速刷词</a><a>我的收藏</a><a>打卡日历</a><a>设置</a>
+    </nav>
+    <div class="foot">VCE EAL · Analysing argument</div>
+  </aside>
+  <main>
+    <div class="head">
+      <div><div class="eyebrow">Friday · 16 October</div><h1>今日学习<em>Today’s practice</em></h1></div>
+      <div class="streak"><span class="pill"><span class="dot"></span>连续 2 天</span><span class="pill fill">累计 12 天</span></div>
+    </div>
+    <section class="row">
+      <div class="hero">
+        <div class="k">DUE REVIEW · 到期复习</div>
+        <div class="big">109<small>条 · 25 组</small></div>
+        <p>按最早学习时间排好。整组认读，再整组默写。</p>
+        <div class="nodes"><span class="d">1</span><span class="d">2</span><span class="d">4</span><span>7</span><span>15</span><span>30 天</span></div>
+        <div class="go"><span class="pill cream">开始复习 →</span></div>
+        <div class="art" data-art="book"></div>
+      </div>
+      <div class="card">
+        <div class="k">NEW LEARNING · 今日新学</div>
+        <h2>约 20 条 · 4 组</h2>
+        <div class="chips"><span class="chip soft">表达积累</span><span class="chip on">词汇积累</span></div>
+        <div class="chips"><span class="chip on">20</span><span class="chip">40</span><span class="chip">60</span><span class="chip">100</span><span class="chip">自定义</span></div>
+        <div class="go"><span style="color:var(--soft);font-size:13.5px">重要 / 必不可少 · 环境健康 · …</span><span class="pill fill">Let’s go</span></div>
+      </div>
+    </section>
+    <section class="row2">
+      <div class="card ring">
+        <svg width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="#E4D9C8" stroke-width="12"/><circle cx="60" cy="60" r="50" fill="none" stroke="#C95F48" stroke-width="12" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="202" transform="rotate(-90 60 60)"/><circle cx="60" cy="60" r="34" fill="none" stroke="#EDA597" stroke-width="8" stroke-linecap="round" stroke-dasharray="214" stroke-dashoffset="214" transform="rotate(-90 60 60)"/></svg>
+        <div><div class="num">46<small> / 129</small></div><ul><li>复习 46 / 109</li><li class="b">新学 0 / 20</li><li class="c">约 70 分钟</li></ul></div>
+      </div>
+      <div class="card words">
+        <div class="top"><h2>今日词表</h2><div class="seg"><span class="on">全部</span><span>今日错词 3</span></div></div>
+        <div class="label">今日复习</div>
+        <div class="gl">
+          <span class="g done">改变观点 <i>4</i></span><span class="g done">证明观点可信 <i>5</i></span><span class="g done">描写作者 persona <i>4</i></span><span class="g done">阻止 / 劝阻 <i>4</i></span>
+          <span class="g">批判 / 攻击 <i>5</i></span><span class="g">揭露 <i>6</i></span><span class="g">抵制 <i>4</i></span><span class="g">加剧负面情绪 <i>3</i></span><span class="g">+ 17 组</span>
+        </div>
+        <div class="label">今日新学</div>
+        <div class="gl"><span class="g new">重要 / 必不可少 <i>5</i></span><span class="g new">环境健康 <i>7</i></span><span class="g new">环境贡献 / 价值 <i>6</i></span><span class="g new">韧性 / 恢复能力 <i>2</i></span></div>
+      </div>
+    </section>
+  </main>
+</div>
+<script type="module">
+import { art } from './art.js';
+document.querySelectorAll('[data-art="book"]').forEach(n => n.innerHTML = art.bookQuill('#EDA597', '#F8DED5', 250));
+document.querySelectorAll('[data-art="logo"]').forEach(n => n.innerHTML = art.logo());
+</script>
+</body>
+</html>
