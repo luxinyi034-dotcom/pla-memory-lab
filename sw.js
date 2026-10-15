@@ -1,7 +1,7 @@
 // Offline support: app files are served from cache and refreshed in the
 // background (stale-while-revalidate). Learning data lives in localStorage /
 // IndexedDB and is never touched by updates.
-const VERSION = 'pla-v2.1.0';
+const VERSION = 'pla-v2.2.0';
 const SHELL = [
   './', './index.html', './manifest.webmanifest', './styles/app.css',
   './icons/icon.svg', './icons/icon-180.png', './icons/icon-192.png',

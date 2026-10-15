@@ -74,7 +74,7 @@ export const studyView = {
       const group = ix.groupById.get(entry.groupID);
       const last = flow.gi + 1 >= flow.queue.length;
       const right = entry.itemIDs.filter(itemID => flow.firstResult[itemID]).length;
-      return `<div class="focus-page">${head}
+      return `<div class="focus-page" data-phase="${flow.phase}">${head}
         <section class="focus-stage is-wide">
           <div class="kicker">本组完成</div>
           <h2 class="focus-title">${esc(group?.name ?? '')}</h2>
@@ -92,10 +92,10 @@ export const studyView = {
         </section></div>`;
     }
 
-    if (!expression) return `<div class="focus-page">${head}<section class="focus-stage"><p>这条表达已被删除。</p><button class="btn" data-action="skip-missing">跳过</button></section></div>`;
+    if (!expression) return `<div class="focus-page" data-phase="${flow.phase}">${head}<section class="focus-stage"><p>这条表达已被删除。</p><button class="btn" data-action="skip-missing">跳过</button></section></div>`;
 
     if (flow.phase === 'recognize') {
-      return `<div class="focus-page">${head}
+      return `<div class="focus-page" data-phase="${flow.phase}">${head}
         <section class="focus-stage">
           <div class="kicker">${flow.ii + 1} / ${entry.itemIDs.length} · 看到英文，你认识吗？</div>
           <div class="focus-english">${esc(expression.english)}</div>
@@ -113,7 +113,7 @@ export const studyView = {
     if (flow.phase === 'detail') {
       const last = flow.ii + 1 >= entry.itemIDs.length;
       const known = flow.recognized[id];
-      return `<div class="focus-page">${head}
+      return `<div class="focus-page" data-phase="${flow.phase}">${head}
         <section class="focus-stage is-wide">
           <div class="kicker ${known ? '' : 'is-accent'}">${flow.ii + 1} / ${entry.itemIDs.length} · ${known ? '你选择了认识' : '你选择了不认识，多看一眼'}</div>
           ${expressionInfo(expression, { large: true })}
@@ -128,7 +128,7 @@ export const studyView = {
 
     if (flow.phase === 'dictation') {
       const retry = (flow.attempts[id] ?? 0) > 0;
-      return `<div class="focus-page">${head}
+      return `<div class="focus-page" data-phase="${flow.phase}">${head}
         <section class="focus-stage is-wide">
           <div class="kicker ${retry ? 'is-accent' : ''}">默写 ${Math.min(flow.di + 1, flow.dictQueue.length)} / ${flow.dictQueue.length}${retry ? ' · 再写一次，写对才算通过' : ''}</div>
           <div class="focus-chinese">${esc(expression.chinese)}</div>
@@ -144,7 +144,7 @@ export const studyView = {
     // result
     const correct = flow.correct;
     const moreInQueue = flow.di + 1 < flow.dictQueue.length;
-    return `<div class="focus-page">${head}
+    return `<div class="focus-page" data-phase="${flow.phase}">${head}
       <section class="focus-stage is-wide">
         <div class="kicker">默写 ${Math.min(flow.di + 1, flow.dictQueue.length)} / ${flow.dictQueue.length}</div>
         <div class="focus-chinese">${esc(expression.chinese)}</div>
@@ -236,7 +236,7 @@ function completeScreen(ctx, flow) {
   const title = flow.repeat ? '再次巩固完成' : flow.type === 'new' ? '今日新学完成' : '今日复习完成';
   const note = flow.repeat ? '本轮不计入掌握度、错误次数和复习节点。'
     : flow.type === 'new' ? '已自动打卡。明天开始第一次复习。' : '复习已记录，下一个节点已经排好。';
-  return `<div class="focus-page">
+  return `<div class="focus-page" data-phase="complete">
     ${focusTop({ exitHref: '#/today', exitLabel: '返回今日学习', meta: flow.type === 'new' ? '新学' : '到期复习', done: 1, total: 1 })}
     <section class="focus-stage is-wide">
       <div class="kicker">完成</div>

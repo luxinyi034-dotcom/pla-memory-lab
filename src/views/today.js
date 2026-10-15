@@ -1,5 +1,5 @@
 import { esc, icon } from '../ui/dom.js';
-import { todayKey, dayLabel } from '../core/time.js';
+import { todayKey, addDaysKey, nowMs } from '../core/time.js';
 import {
   buildIndex, todayNewItems, todayReviewedItems, dueExpressions, dueGroups, sectionByGroup, masteryOf,
   streak, newLearningGroups, recommendGroups, dailyCategory, categoryLabel,
@@ -36,7 +36,7 @@ function wordGroupList(ix, items, sectionKey, ui, { status } = {}) {
     return `<section class="fold ${open ? 'is-open' : ''}">
       <button type="button" class="fold-head" data-action="toggle-fold" data-key="${esc(key)}" aria-expanded="${open}">
         <span class="chev">${icon('chevron')}</span>
-        <span class="fold-title">${esc(group.name)}</span>
+        <span class="cat-dot is-${group.category}" title="${categoryLabel(group.category)}"></span><span class="fold-title">${esc(group.name)}</span>
         <span class="fold-meta">${groupItems.length} 条</span>
       </button>
       ${open ? `<div class="fold-body">${groupItems.map(item => `<a class="mini-row" href="#/detail/${item.id}?from=${encodeURIComponent('#/today')}">
@@ -65,14 +65,23 @@ export const todayView = {
     const pct = s.total ? Math.round(s.done / s.total * 100) : 0;
     const arrow = '<svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';
 
-    const head = `<header class="today-head">
-      <div><div class="eyebrow">${englishDate(s.today)}</div><h1>今日学习</h1></div>
-      <div class="today-meta">
-        <div>已完成 <b>${s.done} / ${s.total}</b>${s.minutes ? ` · 约 ${s.minutes} 分钟` : ' · 今天的任务都完成了'}</div>
-        <a href="#/checkin" class="today-checkin ${checked ? 'is-done' : ''}"><i></i>${checked ? '今日已打卡' : '完成新学后自动打卡'} · 连续 ${streakDays} 天</a>
+    const R = 46; const C = 2 * Math.PI * R;
+    const week = Array.from({ length: 7 }, (_, i) => addDaysKey(s.today, i - 6));
+    const head = `<header class="today-hero">
+      <div class="hero-text">
+        <div class="eyebrow">${englishDate(s.today)}</div>
+        <h1>今日学习</h1>
+        <p class="hero-greet">${greeting()}，${s.total - s.done > 0 ? `今天还有 <b>${s.total - s.done}</b> 条在等你` : '今天的任务都完成了'}${s.minutes ? `，大约 ${s.minutes} 分钟。` : '。'}</p>
+        <a href="#/checkin" class="week-strip" aria-label="最近 7 天打卡">
+          ${week.map(day => `<span class="wk ${state.checkins.includes(day) ? 'is-on' : ''} ${day === s.today ? 'is-today' : ''}"><i></i><small>${'日一二三四五六'[new Date(`${day}T12:00:00Z`).getUTCDay()]}</small></span>`).join('')}
+          <span class="wk-note">${checked ? '今日已打卡' : '完成新学自动打卡'}<b>连续 ${streakDays} 天</b></span>
+        </a>
       </div>
-    </header>
-    <div class="rule-bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div>`;
+      <div class="hero-ring" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100">
+        <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="${R}" class="ring-track"/><circle cx="60" cy="60" r="${R}" class="ring-fill" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct / 100)}" transform="rotate(-90 60 60)"/></svg>
+        <div class="ring-center"><b>${pct}<small>%</small></b><span>${s.done} / ${s.total}</span></div>
+      </div>
+    </header>`;
 
     const resume = resumable ? `<a class="resume-line" href="#/study">
         <span class="resume-dot"></span>
@@ -80,7 +89,7 @@ export const todayView = {
         <span class="resume-go">继续 ${arrow}</span></a>` : '';
 
     const reviewCount = s.reviewPending.length;
-    const reviewTask = `<article class="task">
+    const reviewTask = `<article class="task is-review">
       <div class="task-label"><span>到期复习</span><span>${reviewRunning ? '进行中' : `${due.length} 组`}</span></div>
       <div class="task-num">${reviewRunning ? flowTotals(resumable).total - flowTotals(resumable).done : reviewCount || s.reviewDone.length}</div>
       <p class="task-sub">${reviewRunning ? '还剩这些没默写，退出时的位置已保存'
@@ -91,7 +100,7 @@ export const todayView = {
         : '<a class="btn" href="#/quick">快速刷词</a>'}</div>
     </article>`;
 
-    const newTask = `<article class="task">
+    const newTask = `<article class="task is-new">
       <div class="task-label"><span>今日新学</span><span>${categoryLabel(category)}</span></div>
       <div class="task-num">${newRunning ? flowTotals(resumable).total : s.newDone.length || s.newPlanned}</div>
       <p class="task-sub">${newRunning ? `${resumable.queue.length} 组，已默写 ${flowTotals(resumable).done} 条`
@@ -149,6 +158,11 @@ export const todayView = {
     },
   },
 };
+
+function greeting() {
+  const hour = new Date(nowMs() + 8 * 3600 * 1000).getUTCHours();
+  return hour < 5 ? '夜深了' : hour < 11 ? '早上好' : hour < 13 ? '中午好' : hour < 18 ? '下午好' : '晚上好';
+}
 
 const WEEKDAYS_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
