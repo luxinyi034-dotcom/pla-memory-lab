@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>样稿 C · 沙色胶囊</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Jost:wght@400;500;600&family=Noto+Serif+SC:wght@600;700&display=swap" />
+<style>
+:root{--sand:#ECE4D7;--card:#F8F2E7;--cream:#FFFBF3;--ink:#36322F;--soft:#7E766F;--line:#DCD1C1;--coral:#CB634D;--coral-d:#A94D39;--salmon:#EEA898;--blush:#F7DCD2;
+--serif:"DM Serif Display",Georgia,serif;--zh-serif:"Noto Serif SC","Songti SC",serif;--sans:Jost,"PingFang SC","Noto Sans SC",system-ui,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{background:var(--sand);color:var(--ink);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+.app{display:grid;grid-template-columns:92px 1fr;min-height:100vh}
+.rail{display:flex;flex-direction:column;align-items:center;gap:12px;padding:26px 0}
+.rail .b{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--ink);background:var(--cream);font-size:12px;font-weight:600}
+.rail .b.on{background:var(--coral);border-color:var(--coral);color:var(--cream)}
+.rail .lbl{font-size:11px;color:var(--soft);margin-top:-8px}
+.rail .logo{margin-bottom:14px}
+main{padding:26px 34px 30px 10px;display:grid;grid-template-columns:400px 1fr;gap:18px}
+.hello{background:var(--cream);border-radius:34px;padding:26px 30px 28px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.hello .date{align-self:flex-start;font-size:13px;letter-spacing:.14em;color:var(--soft)}
+.hello h1{margin:6px 0 4px;font-family:var(--serif);font-weight:400;font-size:46px;line-height:1.05}
+.hello .zh{font-family:var(--zh-serif);font-size:17px}
+.hello p{margin:10px 0 0;color:var(--soft);font-size:14.5px;max-width:300px}
+.hello p b{color:var(--ink)}
+.stats{display:flex;gap:10px;margin-top:16px}
+.stat{border:2px solid var(--ink);border-radius:20px;padding:8px 14px;text-align:left;min-width:96px}
+.stat b{display:block;font-family:var(--serif);font-weight:400;font-size:26px;line-height:1.05}
+.stat span{font-size:12px;color:var(--soft)}
+.stat.c{background:var(--coral);border-color:var(--coral);color:var(--cream)}
+.stat.c span{color:var(--blush)}
+.pill{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:50px;padding:0 30px;border:2px solid var(--ink);border-radius:25px;font-weight:500;font-size:16px;margin-top:18px}
+.right{display:flex;flex-direction:column;gap:18px}
+.panel{background:var(--card);border-radius:30px;padding:22px 24px;display:flex;flex-direction:column;gap:14px}
+.ph{display:flex;align-items:baseline;justify-content:space-between}
+.ph h2{margin:0;font-family:var(--serif);font-weight:400;font-size:32px;line-height:1}
+.ph h2 small{font-family:var(--zh-serif);font-size:17px;margin-left:10px;color:var(--soft)}
+.legend{display:flex;gap:14px;font-size:12.5px;color:var(--soft)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.cloud{display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
+.chip{height:40px;padding:0 17px;border-radius:20px;background:var(--cream);border:2px solid var(--ink);display:inline-flex;align-items:center;font-family:var(--serif);font-size:16.5px}
+.chip.n{background:var(--blush);border-color:var(--blush)}
+.chip.x{background:var(--coral);border-color:var(--coral);color:var(--cream)}
+.chip.d{border-color:var(--line);color:var(--soft)}
+.toggles{display:flex;gap:26px;align-items:center;padding-top:4px;border-top:2px dashed var(--line);font-size:14px}
+.tg{display:inline-flex;align-items:center;gap:10px}
+.sw{width:50px;height:28px;border-radius:14px;background:var(--line);position:relative}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--cream)}
+.sw.on{background:var(--coral)}.sw.on::after{left:25px}
+.more{margin-left:auto;text-decoration:underline;text-underline-offset:3px}
+.pair{display:grid;grid-template-columns:1.2fr 1fr;gap:18px}
+.small h3{margin:0;font-family:var(--zh-serif);font-size:19px}
+.small .k{font-size:12.5px;letter-spacing:.14em;color:var(--soft)}
+.seg{display:flex;gap:6px}
+.seg span{height:36px;padding:0 15px;border-radius:18px;border:2px solid var(--ink);display:inline-flex;align-items:center;font-size:14px;background:var(--cream)}
+.seg span.on{background:var(--coral);border-color:var(--coral);color:var(--cream)}
+.stepper{display:inline-flex;align-items:center;gap:12px;height:38px;padding:0 6px;border-radius:19px;background:var(--ink);color:var(--cream);font-size:14px}
+.stepper b{width:26px;height:26px;border-radius:50%;background:var(--cream);color:var(--ink);display:grid;place-items:center}
+.go{display:flex;justify-content:space-between;align-items:center}
+.circle-go{width:50px;height:50px;border-radius:50%;background:var(--coral);display:grid;place-items:center}
+.circle-go::after{content:"";border-left:13px solid var(--cream);border-top:8px solid transparent;border-bottom:8px solid transparent;margin-left:4px}
+.week{display:flex;justify-content:space-between}
+.day{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:var(--soft)}
+.day i{width:34px;height:34px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-style:normal;color:var(--soft)}
+.day i.c{background:var(--coral);border-color:var(--coral);color:var(--cream)}
+.day i.t{border-color:var(--ink);color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="rail">
+    <div class="logo" data-art="logo"></div>
+    <span class="b on">今日</span><span class="b">词库</span><span class="b">计划</span><span class="b">刷词</span><span class="b">收藏</span><span class="b">打卡</span><span class="b">设置</span>
+  </nav>
+  <main>
+    <section class="hello">
+      <div class="date">FRI · 16 OCT</div>
+      <div data-art="book"></div>
+      <h1>Hello there</h1>
+      <div class="zh">今天也把一个好表达写进文章里</div>
+      <p>还有 <b>63 条复习</b> 和 <b>20 条新学</b>，大约 70 分钟。<b>Keep going.</b></p>
+      <div class="stats"><div class="stat c"><b>46</b><span>已完成</span></div><div class="stat"><b>129</b><span>今日任务</span></div><div class="stat"><b>2</b><span>连续打卡</span></div></div>
+      <span class="pill">Let’s go · 继续复习</span>
+    </section>
+    <div class="right">
+      <section class="panel">
+        <div class="ph"><h2>Today’s words<small>今日词表</small></h2>
+          <div class="legend"><span><i style="background:var(--blush)"></i>今日新学</span><span><i style="background:var(--coral)"></i>今日错词</span><span><i style="border:2px solid var(--ink)"></i>今日复习</span></div></div>
+        <div class="cloud">
+          <span class="chip n">essential to/for</span><span class="chip n">vital to/for</span><span class="chip x">indispensable to</span><span class="chip n">integral to</span>
+          <span class="chip">reframe A as B</span><span class="chip">reshape perceptions of</span><span class="chip x">overturn the belief that</span><span class="chip">lend credence to</span>
+          <span class="chip">bolster the claim</span><span class="chip">cast the writer as</span><span class="chip">dissuade sb. from</span><span class="chip x">galvanise sb. into</span>
+          <span class="chip">lambast</span><span class="chip">expose the hypocrisy of</span><span class="chip d">+ 92 条</span>
+        </div>
+        <div class="toggles"><span class="tg">遮住英文 <span class="sw on"></span></span><span class="tg">自动发音 <span class="sw"></span></span><span class="more">按分组查看</span></div>
+      </section>
+      <div class="pair">
+        <section class="panel small">
+          <div class="k">NEW LEARNING</div>
+          <h3>今日新学 · 4 组</h3>
+          <div class="seg"><span>表达积累</span><span class="on">词汇积累</span></div>
+          <div class="go"><span class="stepper"><b>−</b>20 条<b>+</b></span><span class="circle-go"></span></div>
+        </section>
+        <section class="panel small">
+          <div class="k">THIS WEEK</div>
+          <h3>本周打卡</h3>
+          <div class="week"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script type="module">
+import { art } from './art.js';
+document.querySelector('[data-art="book"]').innerHTML = art.bookQuill('#CB634D', '#EEA898', 230);
+document.querySelector('[data-art="logo"]').innerHTML = art.logo('#CB634D');
+const days = [['一', 12, ''], ['二', 13, ''], ['三', 14, ''], ['四', 15, 'c'], ['五', 16, 't'], ['六', 17, ''], ['日', 18, '']];
+document.querySelector('.week').innerHTML = days.map(([d, n, c]) => `<span class="day"><i class="${c}">${n}</i>${d}</span>`).join('');
+</script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>样稿 B · 珊瑚舞台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Jost:wght@400;500;600&family=Noto+Serif+SC:wght@600;700&display=swap" />
+<style>
+:root{--cream:#F8F1E5;--paper:#FDF9F2;--ink:#33302E;--soft:#7C736C;--line:#E6DBCB;--coral:#CD6650;--coral-d:#AE4E3A;--salmon:#EFAA9C;--blush:#F9E0D7;
+--serif:"DM Serif Display",Georgia,serif;--zh-serif:"Noto Serif SC","Songti SC",serif;--sans:Jost,"PingFang SC","Noto Sans SC",system-ui,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{background:var(--cream);color:var(--ink);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{padding:22px 34px 34px;display:flex;flex-direction:column;gap:20px;max-width:1240px;margin:0 auto}
+/* top bar, like the round icon buttons in the reference */
+.top{display:flex;align-items:center;gap:14px}
+.circle{width:46px;height:46px;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;flex:none}
+.circle.o{background:transparent;border:2px solid var(--ink);color:var(--ink)}
+.circle svg{width:20px;height:20px}
+.tabs{display:flex;gap:4px;margin:0 auto;padding:4px;border:2px solid var(--ink);border-radius:26px;background:var(--paper)}
+.tabs span{height:38px;padding:0 16px;border-radius:19px;display:inline-flex;align-items:center;font-size:14.5px;color:var(--soft)}
+.tabs span.on{background:var(--coral);color:var(--paper);font-weight:500}
+.title{display:flex;align-items:baseline;gap:16px}
+h1{margin:0;font-family:var(--serif);font-weight:400;font-size:58px;line-height:1}
+h1 .plus{color:var(--coral)}
+.title .zh{font-family:var(--zh-serif);font-size:22px;color:var(--soft)}
+.title .date{margin-left:auto;font-size:14px;color:var(--soft)}
+/* stage */
+.stage{position:relative;display:grid;grid-template-columns:330px 1fr;gap:10px;background:var(--coral);color:var(--paper);border-radius:34px;padding:26px 30px 24px;overflow:hidden}
+.stage .art{display:grid;place-items:center;background:var(--paper);border-radius:26px;position:relative}
+.stage .tip{position:absolute;left:18px;bottom:14px;right:18px;color:var(--ink);font-size:13px;line-height:1.5}
+.stage .tip u{color:var(--coral-d);text-underline-offset:3px}
+.panel{display:flex;flex-direction:column;gap:14px;padding-left:16px}
+.panel .k{font-size:13px;letter-spacing:.16em;opacity:.85}
+.tasks{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.task{border:2px solid rgba(253,249,242,.8);border-radius:24px;padding:16px 18px;display:flex;flex-direction:column;gap:4px}
+.task.solid{background:var(--paper);color:var(--ink);border-color:var(--paper)}
+.task .n{font-family:var(--serif);font-size:48px;line-height:1}
+.task .n small{font-family:var(--sans);font-size:15px;margin-left:6px;opacity:.75}
+.task .d{font-size:13.5px;opacity:.85}
+.task .row{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.mini{display:inline-flex;align-items:center;gap:10px;height:32px;padding:0 6px;border-radius:16px;background:var(--ink);color:var(--paper);font-size:13px}
+.mini b{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:500}
+.go{width:62px;height:62px;border-radius:50%;border:2.5px solid currentColor;display:grid;place-items:center;flex:none}
+.go i{width:44px;height:44px;border-radius:50%;background:currentColor;display:grid;place-items:center}
+.go i::after{content:"";border-left:13px solid var(--coral);border-top:8px solid transparent;border-bottom:8px solid transparent;margin-left:4px}
+.task.solid .go i::after{border-left-color:var(--paper)}
+.wave{display:flex;align-items:flex-end;gap:5px;height:58px}
+.wave i{width:6px;border-radius:3px;background:rgba(253,249,242,.55)}
+.wave i.on{background:var(--paper)}
+.wave-row{display:flex;align-items:center;gap:16px}
+.wave-row .meta{font-size:13px;opacity:.9;white-space:nowrap}
+.wave-row .meta b{font-family:var(--serif);font-weight:400;font-size:28px;display:block;line-height:1}
+.ctrls{display:flex;align-items:center;gap:10px}
+.ctrl{height:40px;padding:0 16px;border-radius:20px;border:2px solid rgba(253,249,242,.75);display:inline-flex;align-items:center;gap:8px;font-size:14px}
+/* lower */
+.lower{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.card{background:var(--paper);border:2px solid var(--ink);border-radius:26px;padding:18px 20px;display:flex;flex-direction:column;gap:10px}
+.card h3{margin:0;font-family:var(--zh-serif);font-size:19px;display:flex;align-items:center;justify-content:space-between}
+.card h3 small{font-family:var(--sans);font-weight:400;font-size:13px;color:var(--soft)}
+.words{display:flex;flex-direction:column;gap:6px}
+.w{display:flex;align-items:center;gap:10px;height:40px;padding:0 6px 0 14px;border:2px solid var(--line);border-radius:20px;font-size:14px}
+.w span{font-family:var(--serif);font-size:16px}
+.w em{font-style:normal;color:var(--soft);font-size:12.5px;margin-left:auto;margin-right:6px}
+.w.x{border-color:var(--salmon);background:var(--blush)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal i{aspect-ratio:1;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-style:normal;font-size:12px;color:var(--soft)}
+.cal i.c{background:var(--coral);border-color:var(--coral);color:var(--paper)}
+.cal i.t{border-color:var(--ink);color:var(--ink);font-weight:600}
+.link{margin-top:auto;font-size:13.5px;text-decoration:underline;text-underline-offset:3px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <span class="circle"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 3 10.5V21h6v-6h6v6h6V10.5L12 3Z"/></svg></span>
+    <span data-art="logo"></span>
+    <nav class="tabs"><span class="on">今日</span><span>表达库</span><span>计划</span><span>快速刷词</span><span>收藏</span><span>打卡</span></nav>
+    <span class="circle o"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
+    <span class="circle o"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="3.4"/><path d="M12 2.5 14 5l3-.5.8 3 2.7 1.5-1 2.9 1 2.9-2.7 1.5-.8 3-3-.5-2 2.5-2-2.5-3 .5-.8-3L3.5 14.8l1-2.9-1-2.9L6.2 7.5l.8-3 3 .5 2-2.5Z" opacity=".25"/></svg></span>
+  </div>
+  <div class="title"><h1>Review <span class="plus">+</span> Learn</h1><span class="zh">今日学习</span><span class="date">10月16日 星期五 · 连续打卡 2 天</span></div>
+  <section class="stage">
+    <div class="art"><div data-art="book"></div><div class="tip">今天先完成到期复习，再学新内容；每组都是先认读、后默写。<u>Got it</u></div></div>
+    <div class="panel">
+      <div class="k">TODAY · 今日任务</div>
+      <div class="tasks">
+        <div class="task solid">
+          <div class="d">到期复习 · 25 组</div>
+          <div class="n">109<small>条</small></div>
+          <div class="row"><span class="d">已完成 46 条</span><span class="go" style="color:var(--coral)"><i></i></span></div>
+        </div>
+        <div class="task">
+          <div class="d">今日新学 · 词汇积累</div>
+          <div class="n">20<small>条 · 4 组</small></div>
+          <div class="row"><span class="mini"><b>−</b>20 条<b>+</b></span><span class="go"><i></i></span></div>
+        </div>
+      </div>
+      <div class="wave-row">
+        <div class="meta"><b>46 / 129</b>今日进度</div>
+        <div class="wave"></div>
+      </div>
+      <div class="ctrls"><span class="ctrl">⏱ 约 70 分钟</span><span class="ctrl">今日错词 3</span><span class="ctrl">快速刷今日内容</span></div>
+    </div>
+  </section>
+  <section class="lower">
+    <div class="card">
+      <h3>今日错词 <small>第一次默写没写对</small></h3>
+      <div class="words">
+        <div class="w x"><span>essential to/for</span><em>新学</em></div>
+        <div class="w x"><span>overturn the belief that</span><em>复习</em></div>
+        <div class="w x"><span>galvanise sb. into</span><em>复习</em></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>正在复习 <small>按最早学习时间</small></h3>
+      <div class="words">
+        <div class="w"><span>改变观点</span><em>4 条</em></div>
+        <div class="w"><span>证明观点可信</span><em>5 条</em></div>
+        <div class="w"><span>描写作者 persona</span><em>4 条</em></div>
+      </div>
+      <a class="link">查看全部 25 组</a>
+    </div>
+    <div class="card">
+      <h3>十月 <small>补打卡 0 / 2</small></h3>
+      <div class="cal"></div>
+    </div>
+  </section>
+</div>
+<script type="module">
+import { art } from './art.js';
+document.querySelector('[data-art="book"]').innerHTML = art.bookQuill('#CD6650', '#EFAA9C', 260);
+document.querySelector('[data-art="logo"]').innerHTML = art.logo('#CD6650');
+const heights = [18,30,22,44,36,54,40,28,50,58,34,46,24,38,52,30,20,42,48,26,34,56,40,22,30,46,36,18,28,40];
+document.querySelector('.wave').innerHTML = heights.map((h, i) => `<i class="${i < 11 ? 'on' : ''}" style="height:${h}px"></i>`).join('');
+const checked = new Set([1,2,3,4,5,6,15,16]);
+document.querySelector('.cal').innerHTML = Array.from({ length: 21 }, (_, i) => i + 1).map(d => `<i class="${checked.has(d) ? 'c' : ''} ${d === 16 ? 't' : ''}">${d}</i>`).join('');
+</script>
+</body>
+</html>

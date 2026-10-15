@@ -171,6 +171,7 @@ export const settingsView = {
           <h2 class="panel-title">Excel 导入格式</h2>
           <p class="muted small">在“表达库 → 导入 Excel”中使用。表头支持：<strong>单词/短语</strong>（必填）、（美）音标、简短中文释义、例句、拓展；可选“分组”和“类别”（表达积累 / 词汇积累）。按表格行顺序保存。</p>
           <button type="button" class="btn btn-ghost" data-action="template">${icon('download')} 下载 CSV 模板</button>
+          <h3 class="sub-title">版本</h3><p class="muted small">旧版本都存档在 <a href="#/versions" style="color:var(--signal-deep)">版本目录</a>，可以随时打开对比。</p>
           <h3 class="sub-title">使用小贴士</h3>
           <ul class="tips">
             <li>在 iPad Safari 里点“分享 → 添加到主屏幕”，就能像 App 一样全屏、离线使用，数据也不容易被系统清理。</li>
