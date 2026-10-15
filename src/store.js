@@ -1,8 +1,9 @@
 // Single source of truth in the browser. Views read `store.state` / `store.ix`
 // and change data only through `store.commit(fn)`.
-import { normalizeState, validateState, defaultState } from './core/model.js';
+import { normalizeState, validateState, defaultState, applyGapMigration, GAP_MIGRATION } from './core/model.js';
+import { resyncSchedule } from './core/srs.js';
 import { buildIndex } from './core/selectors.js';
-import { todayKey, nowISO } from './core/time.js';
+import { todayKey, nowISO, setPausedDays } from './core/time.js';
 
 const STORAGE_KEY = 'pla-memory-lab-state';
 const META_KEY = 'pla-memory-lab-meta';
@@ -22,6 +23,7 @@ export const store = {
   /** Run a mutation, rebuild indexes, persist, notify. */
   commit(mutator, { silent = false } = {}) {
     const result = mutator(this.state);
+    setPausedDays(this.state.pausedDays);
     this.ix = buildIndex(this.state);
     this.scheduleSave();
     if (!silent) listeners.forEach(fn => fn());
@@ -31,6 +33,7 @@ export const store = {
   /** Swap in a fully validated state (used by import). */
   replace(next) {
     validateState(next);
+    prepareState(next);
     this.state = next;
     this.ix = buildIndex(next);
     this.saveNow();
@@ -90,11 +93,42 @@ export const store = {
         }
       } catch (error) { console.warn('No seed data', error); }
     }
+    const migrated = prepareState(this.state);
     this.ix = buildIndex(this.state);
-    if (this.source !== 'local') this.saveNow();
+    this.migrated = migrated;
+    if (this.source !== 'local' || migrated) this.saveNow();
     try { await navigator.storage?.persist?.(); } catch { /* optional */ }
   },
 };
+
+/**
+ * Make a freshly loaded state ready to use: tell the date maths which days are
+ * paused and run one-off data migrations. Before a migration changes anything,
+ * the untouched data is kept as a named snapshot (restoring it does not re-run
+ * the migration).
+ */
+function prepareState(state) {
+  setPausedDays(state.pausedDays);
+  if (state.migrations?.[GAP_MIGRATION]) return null;
+  const before = JSON.parse(JSON.stringify(state));
+  before.migrations = { ...before.migrations, [GAP_MIGRATION]: 'skipped-restore' };
+  const result = applyGapMigration(state);
+  if (result) {
+    saveNamedSnapshot(`${todayKey()} · 补打卡前`, before).catch(() => {});
+    setPausedDays(state.pausedDays);
+    state.progress.forEach(resyncSchedule);
+  }
+  return result;
+}
+
+async function saveNamedSnapshot(day, state) {
+  const db = await openDB();
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction('snapshots', 'readwrite');
+    tx.objectStore('snapshots').put({ day, savedAt: nowISO(), state });
+    tx.oncomplete = resolve; tx.onerror = () => reject(tx.error);
+  });
+}
 
 // ---------- IndexedDB daily snapshots (safety net, newest 10 kept) ----------
 
@@ -120,7 +154,11 @@ async function dailySnapshot(state) {
     get.onsuccess = () => {
       if (!get.result) os.put({ day, savedAt: nowISO(), state: JSON.parse(JSON.stringify(state)) });
       const keys = os.getAllKeys();
-      keys.onsuccess = () => keys.result.sort().slice(0, Math.max(0, keys.result.length - SNAPSHOT_LIMIT)).forEach(key => os.delete(key));
+      keys.onsuccess = () => {
+        // Only prune the automatic daily ones; named safety snapshots stay.
+        const daily = keys.result.filter(key => /^\d{4}-\d{2}-\d{2}$/.test(key)).sort();
+        daily.slice(0, Math.max(0, daily.length - SNAPSHOT_LIMIT)).forEach(key => os.delete(key));
+      };
     };
     tx.oncomplete = resolve; tx.onerror = () => reject(tx.error);
   });

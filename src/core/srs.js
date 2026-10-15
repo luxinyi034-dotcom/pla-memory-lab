@@ -1,6 +1,6 @@
 // Review schedule: nodes at 1, 2, 4, 7, 15, 30 days after the first learning
 // day. `intervalIndex` = number of nodes already completed (0..6).
-import { dayKey, addDaysKey, addDaysISO, nowISO, todayKey, diffDaysKey, middayISO } from './time.js';
+import { dayKey, addActiveDays, addDaysISO, nowISO, todayKey, diffDaysKey, middayISO } from './time.js';
 
 export const REVIEW_INTERVALS = [1, 2, 4, 7, 15, 30];
 export const NODE_LABELS = ['第一天', '第二天', '第四天', '第七天', '第十五天', '第三十天'];
@@ -18,15 +18,18 @@ export function learnedDay(progress) { return progress?.firstLearnedAt ? dayKey(
 /** Business day on which node `node` falls due. */
 export function nodeDueDay(progress, node) {
   const start = learnedDay(progress);
-  return start && node < REVIEW_INTERVALS.length ? addDaysKey(start, REVIEW_INTERVALS[node]) : null;
+  return start && node < REVIEW_INTERVALS.length ? addActiveDays(start, REVIEW_INTERVALS[node]) : null;
 }
 
 function syncSchedule(progress) {
   const idx = progress.intervalIndex ?? 0;
-  progress.nextReviewAt = progress.firstLearnedAt && idx < REVIEW_INTERVALS.length
-    ? addDaysISO(progress.firstLearnedAt, REVIEW_INTERVALS[idx]) : null;
+  const due = progress.firstLearnedAt ? nodeDueDay(progress, idx) : null;
+  progress.nextReviewAt = due ? addDaysISO(progress.firstLearnedAt, diffDaysKey(learnedDay(progress), due)) : null;
   progress.status = !progress.firstLearnedAt ? 'new' : idx >= REVIEW_INTERVALS.length ? 'mastered' : 'scheduled';
 }
+
+/** Recompute stored schedule fields, e.g. after the paused days changed. */
+export const resyncSchedule = syncSchedule;
 
 /** Next due business day for an expression, or null when not learned / all nodes done. */
 export function nextDueDay(progress) {

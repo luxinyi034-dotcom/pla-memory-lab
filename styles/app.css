@@ -19,8 +19,12 @@
   --ochre-soft: #F4E5C5;
   --sage: #5F8466;
   --sage-soft: #DCE8DC;
-  --blue: #4F6F96;
-  --blue-soft: #DCE5EF;
+  --blue: #85627A;          /* plum: vocabulary category */
+  --blue-soft: #EADFE4;
+  --moss: #5B7A5A;
+  --moss-deep: #46633F;
+  --moss-soft: #E4EBDC;
+  --apricot: #F8E6D6;
   --ok: var(--sage);
   --ok-soft: var(--sage-soft);
   --warn: var(--ochre-deep);
@@ -746,16 +750,17 @@ button.node-chip:hover { background: var(--accent-soft); }
 
 /* Task panels with colour */
 .task-grid { gap: 20px; }
-.task { border-top: 0; border-radius: 20px; padding: 22px 26px 24px; min-height: 250px; position: relative; overflow: hidden; }
-.task::after { content: ""; position: absolute; right: -40px; top: -40px; width: 150px; height: 150px; border-radius: 50%; opacity: .55; pointer-events: none; }
+.task { border-top: 0; border-radius: 20px; padding: 24px 28px 26px; min-height: 250px; position: relative; overflow: hidden; box-shadow: 0 1px 0 var(--line); }
+.task::before { content: ""; position: absolute; left: 28px; top: 0; width: 44px; height: 4px; border-radius: 0 0 4px 4px; }
 .task > * { position: relative; z-index: 1; }
-.task.is-review { background: var(--accent-soft); }
-.task.is-review::after { background: radial-gradient(circle, #EDBBA8 0%, transparent 70%); }
+.task.is-review { background: var(--apricot); }
+.task.is-review::before { background: var(--accent); }
 .task.is-review .task-num { color: var(--accent-deep); }
-.task.is-new { background: var(--blue-soft); }
-.task.is-new::after { background: radial-gradient(circle, #BFD0E3 0%, transparent 70%); }
-.task.is-new .task-num { color: var(--blue); }
-.task.is-new .btn-primary { background: var(--blue); border-color: var(--blue); box-shadow: 0 6px 16px -8px rgba(79, 111, 150, .6); }
+.task.is-new { background: var(--moss-soft); }
+.task.is-new::before { background: var(--moss); }
+.task.is-new .task-num { color: var(--moss-deep); }
+.task.is-new .btn-primary { background: var(--moss); border-color: var(--moss); box-shadow: 0 6px 16px -8px rgba(70, 99, 63, .6); }
+.task.is-new .btn-primary:hover { background: var(--moss-deep); border-color: var(--moss-deep); }
 .task-label { color: var(--ink-2); font-weight: 500; }
 .task-sub { color: var(--ink-2); opacity: .8; }
 .task .btn:not(.btn-primary) { border-color: var(--ink-2); }
@@ -857,11 +862,11 @@ button.node-chip { border-bottom: 0; border-radius: 999px; box-shadow: inset 0 0
 .focus-track { height: 3px; border-radius: 3px; background: var(--wash); }
 .focus-track i { border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--ochre)); }
 .focus-steps span.is-active { border-bottom: 2px solid var(--accent); }
-.focus-page[data-phase="recognize"] .kicker, .focus-page[data-phase="detail"] .kicker { color: var(--blue); }
+.focus-page[data-phase="recognize"] .kicker, .focus-page[data-phase="detail"] .kicker { color: var(--accent-deep); }
 .focus-page[data-phase="dictation"] .kicker, .focus-page[data-phase="result"] .kicker { color: var(--ochre-deep); }
-.focus-page[data-phase="groupDone"] .kicker, .focus-page[data-phase="complete"] .kicker { color: var(--sage); }
-.focus-page[data-phase="recognize"]::before { background: radial-gradient(circle, rgba(191, 208, 227, .7) 0%, rgba(191, 208, 227, 0) 70%); }
-.focus-page[data-phase="groupDone"]::before, .focus-page[data-phase="complete"]::before { background: radial-gradient(circle, rgba(188, 212, 190, .7) 0%, rgba(188, 212, 190, 0) 70%); }
+.focus-page[data-phase="groupDone"] .kicker, .focus-page[data-phase="complete"] .kicker { color: var(--moss-deep); }
+.focus-page[data-phase="recognize"]::before, .focus-page[data-phase="detail"]::before { background: radial-gradient(circle, rgba(244, 214, 190, .75) 0%, rgba(244, 214, 190, 0) 70%); }
+.focus-page[data-phase="groupDone"]::before, .focus-page[data-phase="complete"]::before { background: radial-gradient(circle, rgba(196, 216, 188, .75) 0%, rgba(196, 216, 188, 0) 70%); }
 .focus-chinese { color: var(--ink); }
 .focus-dots i { height: 3px; border-radius: 3px; }
 .focus-dots i.is-done { background: var(--sage); }

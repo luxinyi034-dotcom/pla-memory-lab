@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { dayKey, setClock, addDaysKey } from '../src/core/time.js';
+import { dayKey, setClock, addDaysKey, setPausedDays, addActiveDays } from '../src/core/time.js';
 import { blankProgress, recordNew, recordReview, nodeStatus, isDue, nextDueDay, mastery, completeReviewsForDay } from '../src/core/srs.js';
-import { normalizeState, mergeImport, replaceImport, validateState, buildExport, countState, contentHash } from '../src/core/model.js';
+import { applyGapMigration, GAP_MIGRATION, normalizeState, mergeImport, replaceImport, validateState, buildExport, countState, contentHash } from '../src/core/model.js';
 import { buildIndex, recommendGroups, newLearningGroups, dueGroups, streak, canMakeup, groupNodeStatus } from '../src/core/selectors.js';
 import { gradeAnswer, diffAnswer } from '../src/core/grading.js';
 import { claimMakeup, addToWrongBook, deleteGroups, reorderGroups, importRecords } from '../src/core/actions.js';
@@ -206,4 +206,35 @@ test('group delete cascades; reorder within subset keeps others', () => {
   const res = importRecords(state, [{ english: 'a', group: 'G' }, { english: 'b', group: 'G' }, { english: 'c', group: 'H', category: 'vocabulary' }]);
   assert.equal(res.groupsCreated, 2);
   assert.equal(res.added, 3);
+});
+
+test('paused days do not count towards due dates', () => {
+  setPausedDays(['2026-10-07', '2026-10-08', '2026-10-09']);
+  assert.equal(addActiveDays('2026-10-06', 1), '2026-10-10');
+  assert.equal(addActiveDays('2026-10-05', 4), '2026-10-12'); // 06, 10, 11, 12
+  assert.equal(addActiveDays('2026-10-01', 2), '2026-10-03');
+  setPausedDays([]);
+  assert.equal(addActiveDays('2026-10-05', 4), '2026-10-09');
+});
+
+test('gap migration fills check-ins, pauses the break, keeps learning records, is idempotent', () => {
+  const state = normalizeState(seed.state);
+  const before = JSON.stringify(state.progress.map(p => [p.expressionID, p.firstLearnedAt, p.intervalIndex, p.errorCount, p.accuracyAttempts]));
+  const learnedBefore = state.progress.filter(p => p.firstLearnedAt).length;
+  setPausedDays([]);
+  const overdueBefore = state.progress.filter(p => { const d = nextDueDay(p); return d && d <= '2026-10-15'; }).length;
+  const result = applyGapMigration(state, { now: '2026-10-15T14:00:00Z' });
+  assert.equal(result.checkinsAdded, 8);
+  assert.equal(state.checkins.length, 19);
+  assert.deepEqual(state.pausedDays, ['2026-10-07', '2026-10-08', '2026-10-09', '2026-10-10', '2026-10-11', '2026-10-12', '2026-10-13', '2026-10-14']);
+  assert.equal(streak(state.checkins, '2026-10-15'), 19);
+  assert.equal(state.makeupCheckins.length, 0, 'does not use the monthly make-up quota');
+  assert.equal(JSON.stringify(state.progress.map(p => [p.expressionID, p.firstLearnedAt, p.intervalIndex, p.errorCount, p.accuracyAttempts])), before);
+  assert.equal(state.progress.filter(p => p.firstLearnedAt).length, learnedBefore);
+  setPausedDays(state.pausedDays);
+  const dueAfter = state.progress.filter(p => { const d = nextDueDay(p); return d && d <= '2026-10-15'; }).length;
+  assert.ok(dueAfter < overdueBefore, `due today should drop (${overdueBefore} -> ${dueAfter})`);
+  assert.equal(applyGapMigration(state), null, 'second run does nothing');
+  assert.ok(state.migrations[GAP_MIGRATION]);
+  setPausedDays([]);
 });
