@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>学习页 · 纸本</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Inter:wght@400;500&family=Noto+Serif+SC:wght@500;600&display=swap" />
+<style>
+:root{--bg:#FAF8F4;--ink:#1C1B19;--soft:#77736C;--faint:#B3ADA4;--line:#E3DED5;--accent:#9E3B2B;--accent-soft:#F3E4DE;--ok:#3E6A50;--ok-soft:#E6EFE8;
+--display:"Newsreader",Georgia,serif;--zh:"Noto Serif SC",serif;--body:Inter,"PingFang SC",system-ui,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;height:100%}[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 var(--body);-webkit-font-smoothing:antialiased}
+.app{display:grid;grid-template-columns:212px 1fr;height:100vh}
+.focus .app{grid-template-columns:1fr}
+.focus aside{display:none}
+aside{padding:44px 26px 32px 34px;display:flex;flex-direction:column;border-right:1px solid var(--line)}
+.brand{font-family:var(--display);font-size:21px;margin-bottom:46px}.brand span{color:var(--accent)}
+nav{display:flex;flex-direction:column;gap:2px}
+nav a{display:flex;justify-content:space-between;height:38px;align-items:center;color:var(--soft);font-size:14.5px;position:relative}
+nav a.on{color:var(--ink);font-weight:500}nav a.on::before{content:"";position:absolute;left:-14px;width:5px;height:5px;border-radius:50%;background:var(--accent)}
+nav a small{font-size:12px;color:var(--faint)}nav a.on small{color:var(--accent)}
+main{display:flex;flex-direction:column;padding:34px 60px 40px;min-height:0}
+.focus main{padding:30px 72px 40px}
+.top{display:flex;align-items:center;gap:24px;font-size:13px;color:var(--soft)}
+.top .exit{color:var(--ink);display:flex;align-items:center;gap:6px}
+.top .exit svg{width:14px;height:14px}
+.top .meta{flex:1;text-align:center}
+.top .meta b{color:var(--ink);font-weight:500}
+.top .steps{display:flex;gap:14px}
+.top .steps span.on{color:var(--ink);border-bottom:1px solid var(--ink)}
+.track{height:2px;background:var(--line);margin:16px 0 0}
+.track i{display:block;height:100%;width:28%;background:var(--accent)}
+.stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;max-width:760px;margin:0 auto;width:100%}
+.kicker{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--soft)}
+.english{font-family:var(--display);font-size:72px;line-height:1.08;letter-spacing:-.02em;margin:22px 0 10px}
+.focus .english{font-size:84px}
+.phon{font-family:var(--display);font-style:italic;color:var(--soft);font-size:18px}
+.tools{display:flex;gap:22px;margin-top:20px;font-size:13px;color:var(--soft)}
+.tools span{display:inline-flex;align-items:center;gap:6px}
+.tools svg{width:15px;height:15px}
+.actions{display:flex;gap:14px;margin-top:56px}
+.btn{height:52px;min-width:168px;padding:0 26px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:500;border:1px solid var(--ink);border-radius:2px;background:transparent;color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.btn small{font-size:11.5px;opacity:.6;font-weight:400;margin-left:4px}
+.zh{font-family:var(--zh);font-weight:500;font-size:36px;line-height:1.35;margin:14px 0 4px}
+.focus .zh{font-size:46px}
+.hint{font-size:13px;color:var(--faint)}
+.answer{width:100%;margin-top:28px;text-align:left}
+.answer .lab{font-size:12px;letter-spacing:.14em;color:var(--soft);text-transform:uppercase;display:flex;justify-content:space-between}
+.answer .field{font-family:var(--display);font-size:30px;padding:4px 0 8px;border-bottom:1px solid var(--ink)}
+.answer .field mark{background:none;color:var(--accent);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:6px}
+.answer .correct{font-family:var(--display);font-size:30px;padding:4px 0 0;color:var(--ink)}
+.verdict{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;color:var(--accent);margin-top:12px}
+.verdict i{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.meaning{margin-top:18px;font-size:14.5px;color:var(--soft);text-align:left;width:100%;border-top:1px solid var(--line);padding-top:14px;display:grid;grid-template-columns:72px 1fr;gap:6px 18px}
+.meaning dt{font-size:12px;letter-spacing:.12em;color:var(--faint);text-transform:uppercase;padding-top:3px}
+.meaning dd{margin:0}
+.meaning dd.ex{font-family:var(--display);font-style:italic;font-size:17px;color:var(--ink)}
+.dots{display:flex;gap:6px;justify-content:center;margin-top:28px}
+.dots i{width:22px;height:2px;background:var(--line)}.dots i.d{background:var(--ink)}.dots i.c{background:var(--accent)}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand">PLA<span>.</span> Lab</div>
+    <nav><a class="on">今日学习 <small>109</small></a><a>表达库 <small>546</small></a><a>掌握与计划</a><a>快速刷词</a><a>我的收藏 <small>3</small></a><a>打卡日历</a><a>设置</a></nav>
+  </aside>
+  <main>
+    <div class="top">
+      <a class="exit"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 3 5 8l5 5"/></svg>退出</a>
+      <div class="meta">到期复习 · 第 1 / 25 组 · <b>改变观点</b></div>
+      <div class="steps"><span id="s1">认读</span><span id="s2">默写</span><span>小结</span></div>
+    </div>
+    <div class="track"><i></i></div>
+    <section class="stage" id="recognize">
+      <div class="kicker">3 / 4 · 看到英文，你认识吗？</div>
+      <div class="english">challenge the assumption that</div>
+      <div class="phon">/ˈtʃælɪndʒ ði əˈsʌmpʃn ðæt/</div>
+      <div class="tools"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>发音</span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z"/></svg>收藏</span></div>
+      <div class="actions"><span class="btn">不认识<small>←</small></span><span class="btn primary">认识<small>→</small></span></div>
+      <div class="dots"><i class="d"></i><i class="d"></i><i class="c"></i><i></i></div>
+    </section>
+    <section class="stage" id="dictation" hidden>
+      <div class="kicker">默写 2 / 4</div>
+      <div class="zh">把 A 重新定义 / 框定为 B</div>
+      <div class="hint">BP 分析 · 观点重构</div>
+      <div class="answer">
+        <div class="lab"><span>你的答案</span><span>忽略大小写与标点</span></div>
+        <div class="field">reframe A a<mark>z</mark> B</div>
+        <div class="verdict"><i></i>差一个字母，本组最后会再写一次</div>
+        <div class="lab" style="margin-top:22px"><span>正确答案</span></div>
+        <div class="correct">reframe A as B</div>
+      </div>
+      <dl class="meaning"><dt>例句</dt><dd class="ex">The writer reframes the proposal as a threat to the community rather than an opportunity.</dd></dl>
+      <div class="actions" style="margin-top:30px"><span class="btn">查看详情</span><span class="btn primary">下一条<small>↵</small></span></div>
+    </section>
+  </main>
+</div>
+<script>
+const q = new URLSearchParams(location.search);
+if (q.get('mode') === 'focus') document.body.classList.add('focus');
+const phase = q.get('phase') || 'recognize';
+document.getElementById('recognize').hidden = phase !== 'recognize';
+document.getElementById('dictation').hidden = phase !== 'dictation';
+document.getElementById(phase === 'recognize' ? 's1' : 's2').classList.add('on');
+</script>
+</body>
+</html>
