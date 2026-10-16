@@ -3,9 +3,10 @@ import { esc, icon, toast, modal, confirmDialog, downloadFile, speak } from '../
 import { todayKey, addDaysKey, formatDateTime, dayLabel } from '../core/time.js';
 import { streak, makeupUsed, canMakeup, MAKEUP_LIMIT_PER_MONTH, masteryOf, categoryLabel, isLearned } from '../core/selectors.js';
 import { claimMakeup, toggleFavorite } from '../core/actions.js';
-import { buildExport, mergeImport, replaceImport, countState, contentHash, unwrapPayload, normalizeState } from '../core/model.js';
+import { buildExport, mergeImport, replaceImport, countState, contentHash, unwrapPayload, normalizeState, MIGRATION_KEYS } from '../core/model.js';
 import { listSnapshots } from '../store.js';
 import { pageHead, segmented, CATEGORY_TABS, masteryPill, emptyState } from './common.js';
+import { versionList, versionActions } from './versions.js';
 
 // ---------- Favorites ----------
 
@@ -115,7 +116,7 @@ async function readJSONFile(file) {
 /** One snapshot row: kind badge, readable name, contents, restore button. */
 function snapshotRow(snap) {
   const [day, ...rest] = snap.day.split(' · ');
-  const label = rest.join(' · ');
+  const label = rest.join(' · ').replace(/ #\d+$/, '');
   const kind = label.startsWith('打开') ? ['is-version', '更新前'] : label ? ['is-migration', '整理前'] : ['is-daily', '每日'];
   const [, m, d] = day.split('-').map(Number);
   const time = snap.savedAt ? formatDateTime(snap.savedAt).slice(-8, -3) : '';
@@ -186,13 +187,18 @@ export const settingsView = {
           <button type="button" class="btn btn-ghost" data-action="template">${icon('download')} 下载 CSV 模板</button>
         </section>
 
+        <section class="panel versions-panel">
+          <h2 class="panel-title">版本</h2>
+          <p class="muted small">每次更新都会把上一版完整保留。可以直接打开任何一版，或设为默认打开的版本（以后打开网站就进入它）。所有版本共用同一份学习数据，切换前会自动存快照。</p>
+          ${versionList()}
+        </section>
+
         <section class="panel tips-panel">
           <h2 class="panel-title">使用小贴士</h2>
           <ul class="tips">
             <li>在 iPad Safari 里点“分享 → 添加到主屏幕”，就能像 App 一样全屏、离线使用，数据也不容易被系统清理。</li>
             <li>学习日每天北京时间凌晨 2:00 切换；复习节点为首次学习后的第 1、2、4、7、15、30 天。</li>
             <li>默写忽略大小写、空格和标点；sb. / sth. 这类缩写写不写点都算对。</li>
-            <li>旧版本都存档在 <a class="text-link" href="#/versions">版本目录</a>，可以随时打开对比，学习数据是同一份。</li>
           </ul>
         </section>
       </div>
@@ -244,6 +250,7 @@ export const settingsView = {
     },
   },
   actions: {
+    ...versionActions,
     export: async (el, ctx) => {
       const payload = await buildExport(ctx.state);
       downloadFile(`PLA-Memory-Lab-backup-${todayKey()}.json`, JSON.stringify(payload, null, 2));
@@ -255,7 +262,11 @@ export const settingsView = {
       const snap = ctx.ui.snapshots?.find(item => item.day === el.dataset.day);
       if (!snap) return;
       if (!await confirmDialog(`恢复到 ${snap.day} 的快照？`, '当前数据会被这份快照替换。建议先导出一份当前数据。', { okLabel: '恢复', tone: 'danger' })) return;
-      ctx.store.replace(replaceImport(snap.state, ctx.state.settings));
+      // Restoring brings the data back exactly as it was: one-off clean-ups do not run on it again.
+      const restored = replaceImport(snap.state, ctx.state.settings);
+      restored.migrations = { ...restored.migrations };
+      MIGRATION_KEYS.forEach(key => { restored.migrations[key] ??= 'skipped-restore'; });
+      ctx.store.replace(restored);
       toast('已恢复快照', 'success');
     },
     'test-speak': (el, ctx) => { if (!speak('The writer reframes the proposal as a threat to the community.', ctx.state.settings.pronunciationLocale)) toast('当前浏览器不支持发音', 'error'); },

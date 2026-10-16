@@ -17,9 +17,15 @@ The learner's real study data lives only in their browser, so **protecting it co
 6. **Test against the real data before merging:** load `data/seed.json` (the learner's backup), run `npm test`, and open
    the site in Playwright with existing localStorage to check nothing is lost (counts of groups, expressions, progress,
    check-ins) and that the version snapshot appears in Settings.
-7. **Archiving a version:** copy `index.html`, `src`, `styles`, `icons` into `versions/<name>/`, drop the manifest link and
-   the service-worker registration, give it its own `SELF` in `src/views/versions.js`, and pass its own version to
-   `store.load('<vN>')` so switching versions is also snapshotted.
+7. **Every release archives the previous one** so the learner can open it or make it the default
+   (Settings → 版本, or #/versions). Archive from the last commit on `main`: copy `index.html`, `src`, `styles`, `icons`
+   into `versions/<version>/`; in the copy drop the manifest link, the default-version redirect `<script>` and the
+   service-worker registration, point the seed fetch at `../../data/seed.json`, keep its own `APP_VERSION` for
+   `store.load()`, and set its `SELF` in `src/views/versions.js`. Then add the entry to `VERSIONS` — the file is the same
+   in every copy except `SELF`, so update it in all of them (root, `versions/*` except `foundation`).
+8. **Version snapshots never overwrite each other** (key `<day> · 打开 <version> 前 #hhmmss`); pruning keeps the newest 10
+   plus the first one for each version. Restoring a snapshot marks pending migrations as `skipped-restore` so a restore
+   gives the data back exactly as it was.
 
 ## How the learner recovers data
 

@@ -6,7 +6,7 @@ import { dueExpressions, streak } from './core/selectors.js';
 import { views } from './views/index.js';
 import { LOGO } from './ui/art.js';
 
-export const APP_VERSION = 'v4.1.1';
+export const APP_VERSION = 'v4.2.0';
 
 const NAV = [
   ['today', '今日学习', 'today', '#/today'],

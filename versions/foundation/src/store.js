@@ -106,7 +106,7 @@ async function snapshotBeforeOpen(state) {
   const db = await openDB();
   await new Promise((resolve, reject) => {
     const tx = db.transaction('snapshots', 'readwrite');
-    tx.objectStore('snapshots').put({ day: `${todayKey()} · 打开 v1 前`, savedAt: nowISO(), state });
+    tx.objectStore('snapshots').put({ day: `${todayKey()} · 打开 v1 前 #${nowISO().slice(11, 19).replace(/:/g, '')}`, savedAt: nowISO(), state });
     tx.oncomplete = resolve; tx.onerror = () => reject(tx.error);
   });
 }

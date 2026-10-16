@@ -80,7 +80,7 @@ export const store = {
       try {
         const parsed = JSON.parse(raw);
         if (this.meta.appVersion !== appVersion) {
-          await saveVersionSnapshot(`${todayKey()}${VERSION_TAG}${appVersion} 前`, parsed).catch(error => console.warn('Version snapshot failed', error));
+          await saveVersionSnapshot(`${todayKey()}${VERSION_TAG}${appVersion} 前 #${nowISO().slice(11, 19).replace(/:/g, '')}`, parsed).catch(error => console.warn('Version snapshot failed', error));
         }
         this.state = normalizeState(parsed);
         validateState(this.state);
@@ -95,7 +95,7 @@ export const store = {
       // First launch on this device: start from the bundled backup of the
       // learner's real data. Never generate demo content.
       try {
-        const response = await fetch('./data/seed.json', { cache: 'no-cache' });
+        const response = await fetch('../../data/seed.json', { cache: 'no-cache' });
         if (response.ok) {
           const payload = await response.json();
           this.state = normalizeState(payload.state ?? payload);
@@ -137,16 +137,25 @@ function prepareState(state) {
   return result;
 }
 
-/** Keep a snapshot taken before a different version opened the data; prune to the newest few. */
+/**
+ * Keep a snapshot taken before a different version opened the data. Every one
+ * gets its own key (never overwritten). Pruning keeps the newest few plus, for
+ * each version, the very first one — the data as it was before that release.
+ */
 async function saveVersionSnapshot(day, state) {
   await saveNamedSnapshot(day, state);
   const all = await listSnapshots();
   const versions = all.filter(snap => snap.day.includes(VERSION_TAG)).sort((a, b) => (b.savedAt ?? '').localeCompare(a.savedAt ?? ''));
   if (versions.length <= VERSION_LIMIT) return;
+  const nameOf = snap => snap.day.split(VERSION_TAG)[1]?.replace(/ #\d+$/, '');
+  const firstOfEach = new Set();
+  [...versions].reverse().forEach(snap => { if (![...firstOfEach].some(kept => nameOf(kept) === nameOf(snap))) firstOfEach.add(snap); });
+  const drop = versions.slice(VERSION_LIMIT).filter(snap => !firstOfEach.has(snap));
+  if (!drop.length) return;
   const db = await openDB();
   await new Promise((resolve, reject) => {
     const tx = db.transaction('snapshots', 'readwrite');
-    versions.slice(VERSION_LIMIT).forEach(snap => tx.objectStore('snapshots').delete(snap.day));
+    drop.forEach(snap => tx.objectStore('snapshots').delete(snap.day));
     tx.oncomplete = resolve; tx.onerror = () => reject(tx.error);
   });
 }
