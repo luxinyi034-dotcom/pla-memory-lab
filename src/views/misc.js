@@ -6,7 +6,8 @@ import { claimMakeup, toggleFavorite } from '../core/actions.js';
 import { buildExport, mergeImport, replaceImport, countState, contentHash, unwrapPayload, normalizeState, MIGRATION_KEYS } from '../core/model.js';
 import { listSnapshots } from '../store.js';
 import { pageHead, segmented, CATEGORY_TABS, masteryPill, emptyState } from './common.js';
-import { versionList, versionActions } from './versions.js';
+import { versionList, versionActions, VERSIONS } from './versions.js';
+import { APP_VERSION } from '../version.js';
 
 // ---------- Favorites ----------
 
@@ -188,9 +189,14 @@ export const settingsView = {
         </section>
 
         <section class="panel versions-panel">
-          <h2 class="panel-title">版本</h2>
-          <p class="muted small">每次更新都会把上一版完整保留。可以直接打开任何一版，或设为默认打开的版本（以后打开网站就进入它）。所有版本共用同一份学习数据，切换前会自动存快照。</p>
-          ${versionList()}
+          <details class="versions-fold">
+            <summary>
+              <span class="versions-summary"><b class="panel-title">版本</b><span class="muted small">正在使用 ${APP_VERSION} · 共 ${VERSIONS.length} 个版本可打开或设为默认</span></span>
+              <span class="versions-toggle"><span class="when-closed">展开全部版本</span><span class="when-open">收起</span>${icon('chevron')}</span>
+            </summary>
+            <p class="muted small">每次更新都会把上一版完整保留。可以直接打开任何一版，或设为默认打开的版本（以后打开网站就进入它）。所有版本共用同一份学习数据，切换前会自动存快照。</p>
+            ${versionList()}
+          </details>
         </section>
 
         <section class="panel tips-panel">

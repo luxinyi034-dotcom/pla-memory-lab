@@ -9,7 +9,8 @@ import { pageHead } from './common.js';
 const SELF = 'latest';
 
 export const VERSIONS = [
-  { id: 'latest', name: 'v4.2 奶油版', date: '2026-10-16', path: '', notes: ['当前最新版：复习日期按首次学习规整；设置里可以打开或改用任何旧版本'] },
+  { id: 'latest', name: 'v4.2.1 奶油版', date: '2026-10-17', path: '', notes: ['当前最新版：设置里的版本列表默认收起，需要时再展开'] },
+  { id: 'v4.2.0', name: 'v4.2.0 奶油版', date: '2026-10-16', path: 'versions/v4.2.0/', notes: ['复习日期按首次学习规整；10 月 16 日重新开始；设置里可以打开或改用任何旧版本'] },
   { id: 'v4.1.1', name: 'v4.1.1 奶油版', date: '2026-10-16', path: 'versions/v4.1.1/', notes: ['奶油底 + 珊瑚红，左侧导航；设置页新排版，自动快照与每周导出提醒', '规整复习日期之前的版本'] },
   { id: 'minimal', name: 'v3 简约版', date: '2026-10-16', path: 'versions/minimal/', notes: ['更克制的纸本风格：只用一个砖红点缀，几乎没有色块'] },
   { id: 'paper', name: 'v2 纸本版', date: '2026-10-16', path: 'versions/paper/', notes: ['暖白纸面 + 砖红、赭黄、青苔绿、梅紫的低饱和配色'] },

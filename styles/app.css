@@ -1166,3 +1166,16 @@ mark.ans-wrong { background: var(--blush); color: var(--ink); border-radius: 6px
 .version-row { align-items: center; }
 .version-row .word-en .tag { margin-left: 6px; vertical-align: 2px; }
 .version-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; flex: none; }
+
+/* Settings: version list folded by default */
+.versions-fold > summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; cursor: pointer; list-style: none; }
+.versions-fold > summary::-webkit-details-marker { display: none; }
+.versions-summary { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; min-width: 0; }
+.versions-summary .panel-title { margin: 0; }
+.versions-toggle { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 14px; border: 2px solid var(--ink); border-radius: 999px; font-size: 13.5px; font-weight: 500; white-space: nowrap; }
+.versions-toggle .icon { width: 14px; height: 14px; transform: rotate(90deg); transition: transform .2s var(--ease); }
+.versions-fold[open] .versions-toggle .icon { transform: rotate(-90deg); }
+.versions-fold .when-open, .versions-fold[open] .when-closed { display: none; }
+.versions-fold[open] .when-open { display: inline; }
+.versions-fold[open] > summary { margin-bottom: 12px; }
+.versions-fold > p { margin-bottom: 12px; }
