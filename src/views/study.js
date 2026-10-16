@@ -8,6 +8,7 @@ import {
 } from '../core/study.js';
 import { toggleFavorite } from '../core/actions.js';
 import { expressionInfo, answerReview, writingBox, masteryPill } from './common.js';
+import { bubbleArt } from '../ui/art.js';
 
 const flowOf = state => state.sessions[0];
 const ARROW = '<svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';
@@ -16,7 +17,7 @@ const ARROW = '<svg class="icon" viewBox="0 0 16 16" fill="none" stroke="current
 export function focusTop({ exitHref, exitLabel = '退出', meta, steps = null, done = 0, total = 0 }) {
   const pct = total ? Math.round(done / total * 100) : 0;
   return `<div class="focus-top">
-    <a class="focus-exit" href="${exitHref}">${icon('back')}<span>${exitLabel}</span></a>
+    <a class="focus-exit" href="${exitHref}"><span class="exit-dot">${icon('x')}</span><span>${exitLabel}</span></a>
     <div class="focus-meta">${meta}</div>
     <div class="focus-steps">${steps ?? ''}</div>
   </div>
@@ -239,6 +240,7 @@ function completeScreen(ctx, flow) {
   return `<div class="focus-page" data-phase="complete">
     ${focusTop({ exitHref: '#/today', exitLabel: '返回今日学习', meta: flow.type === 'new' ? '新学' : '到期复习', done: 1, total: 1 })}
     <section class="focus-stage is-wide">
+      ${bubbleArt('done-art')}
       <div class="kicker">完成</div>
       <h2 class="focus-title">${title}</h2>
       <p class="focus-note">${note}</p>

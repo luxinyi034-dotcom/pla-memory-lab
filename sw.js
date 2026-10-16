@@ -1,14 +1,14 @@
 // Offline support: app files are served from cache and refreshed in the
 // background (stale-while-revalidate). Learning data lives in localStorage /
 // IndexedDB and is never touched by updates.
-const VERSION = 'pla-v2.4.0';
+const VERSION = 'pla-v4.0.0';
 const SHELL = [
   './', './index.html', './manifest.webmanifest', './styles/app.css',
   './icons/icon.svg', './icons/icon-180.png', './icons/icon-192.png',
   './src/app.js', './src/store.js',
   './src/core/time.js', './src/core/srs.js', './src/core/model.js', './src/core/selectors.js', './src/core/grading.js',
   './src/core/actions.js', './src/core/study.js', './src/core/drills.js', './src/core/xlsx.js',
-  './src/ui/dom.js',
+  './src/ui/dom.js', './src/ui/art.js',
   './src/views/index.js', './src/views/common.js', './src/views/today.js', './src/views/learn.js', './src/views/study.js',
   './src/views/library.js', './src/views/expression.js', './src/views/plan.js', './src/views/quick.js', './src/views/misc.js', './src/views/versions.js',
 ];
