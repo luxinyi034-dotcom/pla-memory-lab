@@ -7,7 +7,7 @@ The learner's real study data lives only in their browser, so **protecting it co
 
 1. **Never rename or split the storage.** `localStorage` key `pla-memory-lab-state`, meta key `pla-memory-lab-meta`,
    IndexedDB `pla-memory-lab` / store `snapshots`. Every version under `versions/` reads and writes the same data.
-2. **Bump `APP_VERSION` in `src/app.js` and `VERSION` in `sw.js` on every release.** A changed `APP_VERSION` makes
+2. **Bump `APP_VERSION` in `src/version.js` and `VERSION` in `sw.js` on every release.** A changed `APP_VERSION` makes
    `store.load()` save a "`<day> · 打开 <version> 前`" snapshot of the untouched data before anything else runs.
 3. **Data changes go through keyed, idempotent migrations** (`state.migrations`, `applyMigrations` in `src/core/model.js`).
    `prepareState` saves a "整理复习前" snapshot before a migration changes anything. Never rewrite data outside a migration.
@@ -17,7 +17,7 @@ The learner's real study data lives only in their browser, so **protecting it co
 6. **Test against the real data before merging:** load `data/seed.json` (the learner's backup), run `npm test`, and open
    the site in Playwright with existing localStorage to check nothing is lost (counts of groups, expressions, progress,
    check-ins) and that the version snapshot appears in Settings.
-7. **Every release archives the previous one** so the learner can open it or make it the default
+7. **Every release archives the previous one** (`python3 tools/archive_version.py <version>`) so the learner can open it or make it the default
    (Settings → 版本, or #/versions). Archive from the last commit on `main`: copy `index.html`, `src`, `styles`, `icons`
    into `versions/<version>/`; in the copy drop the manifest link, the default-version redirect `<script>` and the
    service-worker registration, point the seed fetch at `../../data/seed.json`, keep its own `APP_VERSION` for

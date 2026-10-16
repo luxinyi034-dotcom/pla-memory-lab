@@ -5,8 +5,9 @@ import { todayKey } from './core/time.js';
 import { dueExpressions, streak } from './core/selectors.js';
 import { views } from './views/index.js';
 import { LOGO } from './ui/art.js';
+import { APP_VERSION } from './version.js';
 
-export const APP_VERSION = 'v4.2.0';
+export { APP_VERSION };
 
 const NAV = [
   ['today', '今日学习', 'today', '#/today'],
