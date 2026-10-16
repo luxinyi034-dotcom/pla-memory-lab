@@ -6,6 +6,8 @@ import { dueExpressions, streak } from './core/selectors.js';
 import { views } from './views/index.js';
 import { LOGO } from './ui/art.js';
 
+export const APP_VERSION = 'v4.0.2';
+
 const NAV = [
   ['today', '今日学习', 'today', '#/today'],
   ['library', '表达库', 'library', '#/library'],
@@ -70,7 +72,7 @@ function renderNav(activeArea) {
     return `<a href="${href}" class="nav-item ${activeArea === area ? 'is-active' : ''}" ${activeArea === area ? 'aria-current="page"' : ''}><span class="nav-label">${label}</span>${badge}</a>`;
   }).join('');
   const foot = $('#side-foot');
-  if (foot) foot.innerHTML = `<a class="side-streak ${checked ? 'is-done' : ''}" href="#/checkin"><b>${streak(store.state.checkins, today)}</b><span>天连续打卡</span><small>${checked ? '今日已打卡' : '今日还没打卡'} · 累计 ${store.state.checkins.length} 天</small></a><a class="side-versions" href="#/versions">版本目录</a>`;
+  if (foot) foot.innerHTML = `<a class="side-streak ${checked ? 'is-done' : ''}" href="#/checkin"><b>${streak(store.state.checkins, today)}</b><span>天连续打卡</span><small>${checked ? '今日已打卡' : '今日还没打卡'} · 累计 ${store.state.checkins.length} 天</small></a><a class="side-versions" href="#/versions">版本目录 · ${APP_VERSION}</a>`;
   const brand = $('#brand');
   if (brand && !brand.dataset.ready) { brand.insertAdjacentHTML('afterbegin', LOGO); brand.dataset.ready = '1'; }
 }
@@ -151,7 +153,18 @@ async function boot() {
   if (store.source === 'seed') toast('已载入内置的学习数据备份（2026-10-15）');
   if (store.source === 'snapshot') toast('本地数据损坏，已从自动快照恢复', 'error');
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    // When a new release takes over, reload once so it shows straight away.
+    const hadController = Boolean(navigator.serviceWorker.controller);
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadController || reloaded) return;
+      reloaded = true;
+      flush();
+      location.reload();
+    });
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(registration => {
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) registration.update().catch(() => {}); });
+    }).catch(() => {});
   }
 }
 
