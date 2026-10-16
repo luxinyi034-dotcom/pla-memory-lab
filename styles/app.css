@@ -1102,3 +1102,60 @@ mark.ans-wrong { background: var(--blush); color: var(--ink); border-radius: 6px
 .plan-table { min-width: 760px; }
 .snapshot { flex-wrap: wrap; row-gap: 2px; }
 .snapshot small { white-space: nowrap; }
+
+/* ---------- Settings layout (v4.1.1) ---------- */
+.settings-stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+.s-stat { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border-radius: 20px; background: var(--surface); box-shadow: inset 0 0 0 2px var(--line); min-width: 0; }
+.s-stat span { font-size: 12.5px; color: var(--soft); white-space: nowrap; }
+.s-stat b { font-family: var(--display); font-weight: 500; font-size: 30px; line-height: 1; font-variant-numeric: lining-nums tabular-nums; white-space: nowrap; }
+.s-stat b small { font-family: var(--body); font-size: 13px; font-weight: 400; color: var(--soft); margin-left: 4px; }
+.s-stat:first-child { background: var(--accent-panel); box-shadow: none; color: var(--surface); }
+.s-stat:first-child span, .s-stat:first-child b small { color: var(--surface); opacity: .9; }
+.s-stat:nth-child(3) { background: var(--blush); box-shadow: none; }
+.s-stat:nth-child(3) span, .s-stat:nth-child(3) b small { color: var(--ink-2); }
+.settings-meta { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 12px 4px 22px; font-size: 13px; color: var(--soft); }
+.settings-meta b { color: var(--ink-2); font-weight: 500; margin-left: 4px; }
+.settings-meta .mono { font-size: 12px; }
+
+.backup-panel { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.25fr); gap: 30px; padding: 26px 28px; margin-bottom: 22px; }
+.backup-side { display: flex; flex-direction: column; gap: 12px; }
+.backup-side .panel-title, .snapshot-side .panel-title { margin-bottom: 0; }
+.backup-side .warn { margin: 0; }
+.backup-side .button-row { margin-top: 4px; }
+.export-ok { display: inline-flex; align-self: flex-start; padding: 6px 14px; border-radius: 999px; background: var(--ok-soft); color: var(--ok); font-size: 13px; }
+.snapshot-side { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding-left: 30px; border-left: 2px solid var(--line); }
+.snapshot-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.snapshot-list { max-height: 330px; overflow-y: auto; margin-top: 4px; border-top: 0; }
+.snapshot { display: grid; grid-template-columns: 62px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--line); flex-wrap: nowrap; }
+.snapshot:last-child { border-bottom: 0; }
+.snap-kind { justify-self: start; display: inline-flex; align-items: center; justify-content: center; min-width: 54px; min-height: 26px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+.snap-kind.is-daily { box-shadow: inset 0 0 0 1.5px var(--line-strong); color: var(--ink-2); }
+.snap-kind.is-version { background: var(--blush-soft); color: var(--accent-deep); }
+.snap-kind.is-migration { background: var(--warn-soft); color: var(--warn); }
+.snap-name { display: flex; flex-direction: column; min-width: 0; }
+.snap-name b { font-weight: 500; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.snap-name small { font-size: 12.5px; color: var(--soft); white-space: nowrap; }
+.snapshot .btn { white-space: nowrap; }
+
+.settings-grid { grid-template-columns: 1fr 1fr; align-items: stretch; }
+.settings-grid .panel { display: flex; flex-direction: column; gap: 12px; }
+.settings-grid .panel > .btn { align-self: flex-start; margin-top: auto; }
+.settings-grid .panel-title { margin-bottom: 2px; }
+.tips-panel { grid-column: 1 / -1; }
+.tips { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 28px; padding-left: 18px; }
+
+@media (max-width: 1100px) {
+  .settings-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .backup-panel { grid-template-columns: 1fr; gap: 22px; }
+  .snapshot-side { padding-left: 0; padding-top: 20px; border-left: 0; border-top: 2px solid var(--line); }
+}
+@media (max-width: 860px) {
+  .settings-grid, .tips { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .settings-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .snapshot { grid-template-columns: minmax(0, 1fr) auto; }
+  .snap-kind { grid-column: 1 / -1; }
+}
+.backup-side .button-row { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.backup-side .button-row .btn { width: 100%; }

@@ -2,7 +2,7 @@
 // release shows up on the next open) and fall back to the cache when offline.
 // Fonts are cache-first. Learning data lives in localStorage / IndexedDB and is
 // never touched by updates.
-const VERSION = 'pla-v4.1.0';
+const VERSION = 'pla-v4.1.1';
 const SHELL = [
   './', './index.html', './manifest.webmanifest', './styles/app.css',
   './icons/icon.svg', './icons/icon-180.png', './icons/icon-192.png',

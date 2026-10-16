@@ -112,6 +112,20 @@ async function readJSONFile(file) {
   catch { throw new Error('文件不是有效的 JSON。'); }
 }
 
+/** One snapshot row: kind badge, readable name, contents, restore button. */
+function snapshotRow(snap) {
+  const [day, ...rest] = snap.day.split(' · ');
+  const label = rest.join(' · ');
+  const kind = label.startsWith('打开') ? ['is-version', '更新前'] : label ? ['is-migration', '整理前'] : ['is-daily', '每日'];
+  const [, m, d] = day.split('-').map(Number);
+  const time = snap.savedAt ? formatDateTime(snap.savedAt).slice(-8, -3) : '';
+  return `<div class="snapshot">
+    <span class="snap-kind ${kind[0]}">${kind[1]}</span>
+    <span class="snap-name"><b>${m} 月 ${d} 日${label ? ` · ${esc(label)}` : ''}</b><small>${time ? `${time} · ` : ''}${snap.state?.expressions?.length ?? 0} 条 · 已学 ${(snap.state?.progress ?? []).filter(item => item.firstLearnedAt).length}</small></span>
+    <button type="button" class="btn btn-small btn-ghost" data-action="restore-snapshot" data-day="${esc(snap.day)}">恢复这份</button>
+  </div>`;
+}
+
 export const settingsView = {
   area: 'settings',
   title: '设置',
@@ -124,38 +138,37 @@ export const settingsView = {
     const daysSinceExport = lastExport ? Math.floor((Date.now() - Date.parse(lastExport)) / 86400000) : null;
     return `<div class="page page-settings">
       ${pageHead({ eyebrow: 'SETTINGS', title: '设置', sub: '所有数据保存在这台设备的浏览器里（离线可用）。换设备或清理浏览器前，请先导出备份。' })}
-      <div class="settings-grid">
-        <section class="panel">
-          <h2 class="panel-title">数据概况</h2>
-          <dl class="kv">
-            <div><dt>分组</dt><dd>${counts.groups}</dd></div>
-            <div><dt>表达</dt><dd>${counts.expressions}</dd></div>
-            <div><dt>学习进度</dt><dd>${counts.progress}（已学 ${counts.learned}）</dd></div>
-            <div><dt>计分默写</dt><dd>${counts.accuracyAttempts} 次</dd></div>
-            <div><dt>打卡</dt><dd>${counts.checkins} 天</dd></div>
-            <div><dt>错词本 / 收藏</dt><dd>${counts.wrongBook} / ${counts.favorites}</dd></div>
-            <div><dt>内容校验</dt><dd class="mono">${ui.hash ? `${ui.hash.slice(0, 16)}…` : '计算中…'}</dd></div>
-            <div><dt>最近保存</dt><dd>${store.meta.savedAt ? formatDateTime(store.meta.savedAt) : '—'}</dd></div>
-            ${store.meta.seededFrom ? `<div><dt>初始数据</dt><dd>备份 ${formatDateTime(store.meta.seededFrom)}</dd></div>` : ''}
-          </dl>
-          ${store.saveError ? '<p class="warn">⚠︎ 最近一次保存失败（存储空间可能不足），请立即导出备份。</p>' : ''}
-        </section>
+      <div class="settings-stats">
+        ${[['分组', counts.groups, ''], ['表达', counts.expressions, ''], ['已学', counts.learned, `/ ${counts.progress}`], ['计分默写', counts.accuracyAttempts, '次'], ['打卡', counts.checkins, '天'], ['错词本 / 收藏', `${counts.wrongBook} / ${counts.favorites}`, '']]
+          .map(([label, value, unit]) => `<div class="s-stat"><span>${label}</span><b>${value}${unit ? `<small>${unit}</small>` : ''}</b></div>`).join('')}
+      </div>
+      <p class="settings-meta">
+        <span>最近保存 <b>${store.meta.savedAt ? formatDateTime(store.meta.savedAt) : '—'}</b></span>
+        <span>内容校验 <b class="mono hash-value">${ui.hash ? `${ui.hash.slice(0, 16)}…` : '计算中…'}</b></span>
+        ${store.meta.seededFrom ? `<span>初始数据 <b>备份 ${formatDateTime(store.meta.seededFrom)}</b></span>` : ''}
+      </p>
+      ${store.saveError ? '<p class="warn">⚠︎ 最近一次保存失败（存储空间可能不足），请立即导出备份。</p>' : ''}
 
-        <section class="panel">
+      <section class="panel backup-panel">
+        <div class="backup-side">
           <h2 class="panel-title">备份与恢复</h2>
           <p class="muted small">导出包含词库、分组、学习进度、打卡、收藏、错词本和未完成的学习位置。导入只恢复数据，不会改变网站的功能和界面。</p>
-          ${daysSinceExport == null || daysSinceExport >= 7 ? `<p class="warn">${lastExport ? `距上次导出已经 ${daysSinceExport} 天` : '这台设备还没有导出过备份'}，建议现在导出一份。</p>` : `<p class="muted small">上次导出：${formatDateTime(lastExport)}</p>`}
+          ${daysSinceExport == null || daysSinceExport >= 7 ? `<p class="warn">${lastExport ? `距上次导出已经 ${daysSinceExport} 天` : '这台设备还没有导出过备份'}，建议现在导出一份，存到「文件」或 iCloud。</p>` : `<p class="export-ok">上次导出：${formatDateTime(lastExport)}</p>`}
           <div class="button-row">
             <button type="button" class="btn btn-primary" data-action="export">${icon('download')} 导出完整备份</button>
             <label class="btn file-btn">${icon('upload')} 导入备份…<input type="file" accept=".json,application/json" data-change="import" hidden /></label>
           </div>
-          <h3 class="sub-title">自动快照</h3>
-          <p class="muted small">每天打开网站时会在本机自动存一份快照（保留 30 天）；每次换到新版本或打开其他版本之前，也会先存一份（保留最近 10 次）。都可以在这里一键恢复。</p>
+        </div>
+        <div class="snapshot-side">
+          <div class="snapshot-head"><h3 class="panel-title">自动快照</h3><span class="muted small">${ui.snapshots ? `${ui.snapshots.length} 份` : ''}</span></div>
+          <p class="muted small">每天打开网站自动存一份（保留 30 天）；更新到新版本或打开其他版本前，先存一份（保留最近 10 次）。</p>
           <div class="snapshot-list">${ui.snapshots == null ? '<p class="muted small">读取中…</p>'
-            : ui.snapshots.length ? ui.snapshots.map(snap => `<div class="snapshot"><span>${esc(snap.day)}</span><small>${snap.state?.expressions?.length ?? 0} 条 · 已学 ${(snap.state?.progress ?? []).filter(item => item.firstLearnedAt).length}</small><button type="button" class="btn btn-small btn-ghost" data-action="restore-snapshot" data-day="${esc(snap.day)}">恢复这份</button></div>`).join('')
+            : ui.snapshots.length ? ui.snapshots.map(snapshotRow).join('')
             : '<p class="muted small">还没有快照。</p>'}</div>
-        </section>
+        </div>
+      </section>
 
+      <div class="settings-grid">
         <section class="panel">
           <h2 class="panel-title">发音</h2>
           <label class="switch-row"><span><strong>自动发音</strong><small>认读卡片、默写结果和详情页打开时自动朗读英文</small></span>
@@ -171,19 +184,22 @@ export const settingsView = {
           <h2 class="panel-title">Excel 导入格式</h2>
           <p class="muted small">在“表达库 → 导入 Excel”中使用。表头支持：<strong>单词/短语</strong>（必填）、（美）音标、简短中文释义、例句、拓展；可选“分组”和“类别”（表达积累 / 词汇积累）。按表格行顺序保存。</p>
           <button type="button" class="btn btn-ghost" data-action="template">${icon('download')} 下载 CSV 模板</button>
-          <h3 class="sub-title">版本</h3><p class="muted small">旧版本都存档在 <a href="#/versions" style="color:var(--signal-deep)">版本目录</a>，可以随时打开对比。</p>
-          <h3 class="sub-title">使用小贴士</h3>
+        </section>
+
+        <section class="panel tips-panel">
+          <h2 class="panel-title">使用小贴士</h2>
           <ul class="tips">
             <li>在 iPad Safari 里点“分享 → 添加到主屏幕”，就能像 App 一样全屏、离线使用，数据也不容易被系统清理。</li>
             <li>学习日每天北京时间凌晨 2:00 切换；复习节点为首次学习后的第 1、2、4、7、15、30 天。</li>
             <li>默写忽略大小写、空格和标点；sb. / sth. 这类缩写写不写点都算对。</li>
+            <li>旧版本都存档在 <a class="text-link" href="#/versions">版本目录</a>，可以随时打开对比，学习数据是同一份。</li>
           </ul>
         </section>
       </div>
     </div>`;
   },
   mount(root, ctx) {
-    if (!ctx.ui.hash) contentHash(ctx.state).then(hash => { ctx.ui.hash = hash; const node = root.querySelector('.kv .mono'); if (node) node.textContent = `${hash.slice(0, 16)}…`; }).catch(() => {});
+    if (!ctx.ui.hash) contentHash(ctx.state).then(hash => { ctx.ui.hash = hash; const node = root.querySelector('.hash-value'); if (node) node.textContent = `${hash.slice(0, 16)}…`; }).catch(() => {});
     if (ctx.ui.snapshots == null) listSnapshots().then(list => { ctx.ui.snapshots = list; ctx.rerender(); });
   },
   onLeave(ctx) { ctx.ui.hash = null; ctx.ui.snapshots = null; },
