@@ -1,6 +1,6 @@
 // Single source of truth in the browser. Views read `store.state` / `store.ix`
 // and change data only through `store.commit(fn)`.
-import { normalizeState, validateState, defaultState, applyGapMigration, GAP_MIGRATION } from './core/model.js';
+import { normalizeState, validateState, defaultState, applyMigrations, hasPendingMigrations, MIGRATION_KEYS } from './core/model.js';
 import { resyncSchedule } from './core/srs.js';
 import { buildIndex } from './core/selectors.js';
 import { todayKey, nowISO, setPausedDays } from './core/time.js';
@@ -109,12 +109,13 @@ export const store = {
  */
 function prepareState(state) {
   setPausedDays(state.pausedDays);
-  if (state.migrations?.[GAP_MIGRATION]) return null;
+  if (!hasPendingMigrations(state)) return null;
   const before = JSON.parse(JSON.stringify(state));
-  before.migrations = { ...before.migrations, [GAP_MIGRATION]: 'skipped-restore' };
-  const result = applyGapMigration(state);
+  before.migrations = { ...before.migrations };
+  MIGRATION_KEYS.forEach(key => { before.migrations[key] = 'skipped-restore'; });
+  const result = applyMigrations(state);
   if (result) {
-    saveNamedSnapshot(`${todayKey()} · 补打卡前`, before).catch(() => {});
+    saveNamedSnapshot(`${todayKey()} · 整理复习前`, before).catch(() => {});
     setPausedDays(state.pausedDays);
     state.progress.forEach(resyncSchedule);
   }

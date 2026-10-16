@@ -153,7 +153,8 @@ export function reviewLabel(day, today = todayKey()) {
   if (!day) return { label: '尚未开始', tone: 'quiet', days: Infinity };
   const [ty, tm, td] = today.split('-').map(Number); const [y, m, d] = day.split('-').map(Number);
   const days = Math.round((Date.UTC(y, m - 1, d) - Date.UTC(ty, tm - 1, td)) / 86400000);
-  if (days < 0) return { label: '今日复习', sub: `逾期 ${-days} 天`, tone: 'overdue', days };
+  // Anything that has come due simply is today's review; there is no "overdue".
+  if (days < 0) return { label: '今日复习', tone: 'today', days };
   if (days === 0) return { label: '今日复习', tone: 'today', days };
   return { label: `${days} 天后`, tone: 'future', days };
 }
