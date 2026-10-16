@@ -1,7 +1,8 @@
-// Offline support: app files are served from cache and refreshed in the
-// background (stale-while-revalidate). Learning data lives in localStorage /
-// IndexedDB and is never touched by updates.
-const VERSION = 'pla-v4.0.1';
+// Offline support. App files come from the network first (revalidated, so a new
+// release shows up on the next open) and fall back to the cache when offline.
+// Fonts are cache-first. Learning data lives in localStorage / IndexedDB and is
+// never touched by updates.
+const VERSION = 'pla-v4.0.2';
 const SHELL = [
   './', './index.html', './manifest.webmanifest', './styles/app.css',
   './icons/icon.svg', './icons/icon-180.png', './icons/icon-192.png',
@@ -14,7 +15,7 @@ const SHELL = [
 ];
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(VERSION).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(VERSION).then(cache => cache.addAll(SHELL.map(url => new Request(url, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', event => {
@@ -31,11 +32,21 @@ self.addEventListener('fetch', event => {
   const isFont = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
   if (!sameOrigin && !isFont) return;
   event.respondWith(caches.open(VERSION).then(async cache => {
-    const cached = await cache.match(request, { ignoreSearch: sameOrigin && url.pathname.endsWith('/') });
-    const network = fetch(request).then(response => {
+    if (isFont) {
+      const hit = await cache.match(request);
+      if (hit) return hit;
+      const response = await fetch(request);
       if (response && (response.ok || response.type === 'opaque')) cache.put(request, response.clone());
       return response;
-    }).catch(() => cached);
-    return cached || network;
+    }
+    try {
+      const response = await fetch(request, { cache: 'no-cache' });
+      if (response && response.ok) cache.put(request, response.clone());
+      return response;
+    } catch (error) {
+      const cached = await cache.match(request, { ignoreSearch: url.pathname.endsWith('/') || request.mode === 'navigate' });
+      if (cached) return cached;
+      throw error;
+    }
   }));
 });
