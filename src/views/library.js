@@ -107,6 +107,8 @@ export const libraryView = {
       single: () => toggleGroup(ctx, node.dataset.rename),
       double: () => rename(ctx, node.dataset.rename),
     }));
+    const grid = root.querySelector('.group-grid');
+    if (grid) layoutGroupGrid(grid);
     if (ctx.ui.sort === 'default' && !ctx.ui.manage && !ctx.ui.query.trim()) setupDrag(root, ctx);
   },
   inputs: {
@@ -235,6 +237,35 @@ async function importSpreadsheet(ctx, file) {
   toast(`已导入 ${summary.added} 条${summary.groupsCreated ? `，新建 ${summary.groupsCreated} 个分组` : ''}`, 'success');
 }
 
+// ---------- Two independent columns ----------
+// Cards are dealt left, right, left, right… into two columns, and each column
+// stacks its cards tightly, so a short card never leaves a hole beside a tall one.
+
+const NARROW = typeof matchMedia === 'function' ? matchMedia('(max-width: 860px)') : null;
+const columnCount = () => (NARROW?.matches ? 1 : 2);
+
+function layoutGroupGrid(grid, order = null) {
+  const list = order ?? [...grid.querySelectorAll('.group-card')].sort((a, b) => (Number(a.dataset.order ?? 0) - Number(b.dataset.order ?? 0)) || 0);
+  if (!order && !grid.querySelector('.group-col')) list.forEach((card, index) => { card.dataset.order = index; });
+  const count = columnCount();
+  let cols = [...grid.children].filter(node => node.classList.contains('group-col'));
+  if (cols.length !== count) {
+    cols = Array.from({ length: count }, () => Object.assign(document.createElement('div'), { className: 'group-col' }));
+    list.forEach((card, index) => cols[index % count].append(card));
+    grid.querySelectorAll('.group-col').forEach(col => col.remove());
+    grid.append(...cols);
+  } else {
+    list.forEach((card, index) => cols[index % count].append(card));
+  }
+  list.forEach((card, index) => { card.dataset.order = index; });
+  return list;
+}
+
+NARROW?.addEventListener?.('change', () => {
+  const grid = document.querySelector('.group-grid');
+  if (grid && !document.body.classList.contains('is-reordering')) layoutGroupGrid(grid);
+});
+
 // ---------- Long-press drag reordering ----------
 
 function setupDrag(root, ctx) {
@@ -245,7 +276,8 @@ function setupDrag(root, ctx) {
   let press = null; let drag = null;
 
   const preventTouch = event => { if (drag) event.preventDefault(); };
-  const cards = () => [...grid.querySelectorAll('.group-card')];
+  const ordered = () => [...grid.querySelectorAll('.group-card')].sort((a, b) => Number(a.dataset.order) - Number(b.dataset.order));
+  const inside = (rect, x, y) => rect && x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
 
   grid.addEventListener('pointerdown', event => {
     const head = event.target.closest('[data-drag-handle]');
@@ -254,11 +286,15 @@ function setupDrag(root, ctx) {
     press = { card, x: event.clientX, y: event.clientY, id: event.pointerId, timer: setTimeout(() => begin(event), 420) };
   });
 
-  function begin(event) {
+  function begin() {
     if (!press) return;
     const { card } = press;
     const rect = card.getBoundingClientRect();
-    drag = { card, pointerId: press.id, offsetX: press.x - rect.left, offsetY: press.y - rect.top, mainScroll: main.scrollTop, sideScroll: sidebar?.scrollTop ?? 0, tx: 0, ty: 0 };
+    const order = ordered();
+    // Where every other card sits when nothing is moving. Hit-testing uses these
+    // resting positions, never the in-flight animated ones, so cards can't bounce.
+    const slots = new Map(order.filter(node => node !== card).map(node => [node, node.getBoundingClientRect()]));
+    drag = { card, order, slots, pointerId: press.id, offsetX: press.x - rect.left, offsetY: press.y - rect.top, mainScroll: main.scrollTop, sideScroll: sidebar?.scrollTop ?? 0, lastHit: null, lastMove: null };
     press = null;
     try { card.setPointerCapture(drag.pointerId); } catch { /* ignore */ }
     document.body.classList.add('is-reordering');
@@ -274,20 +310,20 @@ function setupDrag(root, ctx) {
     const { card } = drag;
     card.style.transform = 'none';
     const natural = card.getBoundingClientRect();
-    drag.tx = clientX - drag.offsetX - natural.left;
-    drag.ty = clientY - drag.offsetY - natural.top;
-    card.style.transform = `translate(${drag.tx}px, ${drag.ty}px) scale(1.02)`;
+    card.style.transform = `translate(${clientX - drag.offsetX - natural.left}px, ${clientY - drag.offsetY - natural.top}px) scale(1.02)`;
   }
 
   function flip(mutate) {
-    const others = cards().filter(card => card !== drag.card);
+    const others = drag.order.filter(card => card !== drag.card);
     const before = new Map(others.map(card => [card, card.getBoundingClientRect()]));
+    others.forEach(card => { card.style.transition = 'none'; card.style.transform = ''; });
     mutate();
     others.forEach(card => {
-      const a = before.get(card); const b = card.getBoundingClientRect();
+      const b = card.getBoundingClientRect();
+      drag.slots.set(card, b);
+      const a = before.get(card);
       const dx = a.left - b.left; const dy = a.top - b.top;
       if (!dx && !dy) return;
-      card.style.transition = 'none';
       card.style.transform = `translate(${dx}px, ${dy}px)`;
       requestAnimationFrame(() => { card.style.transition = 'transform .28s cubic-bezier(.2,.8,.2,1)'; card.style.transform = ''; });
     });
@@ -299,31 +335,34 @@ function setupDrag(root, ctx) {
     event.preventDefault();
     main.scrollTop = drag.mainScroll;
     if (sidebar) sidebar.scrollTop = drag.sideScroll;
-    drag.card.style.pointerEvents = 'none';
-    const under = document.elementFromPoint(event.clientX, event.clientY)?.closest('.group-card');
-    drag.card.style.pointerEvents = '';
-    if (under && under !== drag.card && grid.contains(under)) {
-      const list = cards();
-      const from = list.indexOf(drag.card); const to = list.indexOf(under);
-      flip(() => (from < to ? under.after(drag.card) : under.before(drag.card)));
+    const x = event.clientX; const y = event.clientY;
+    const hit = drag.order.find(card => card !== drag.card && inside(drag.slots.get(card), x, y)) ?? null;
+    const movedEnough = !drag.lastMove || Math.hypot(x - drag.lastMove.x, y - drag.lastMove.y) > 14;
+    if (hit && hit !== drag.lastHit && movedEnough) {
+      const from = drag.order.indexOf(drag.card); const to = drag.order.indexOf(hit);
+      drag.order.splice(from, 1);
+      drag.order.splice(to, 0, drag.card);
+      flip(() => layoutGroupGrid(grid, drag.order));
+      drag.lastMove = { x, y };
     }
-    place(event.clientX, event.clientY);
+    drag.lastHit = hit;
+    place(x, y);
   });
 
   const finish = () => {
     if (press) { clearTimeout(press.timer); press = null; }
     if (!drag) return;
-    const { card } = drag;
+    const { card, order } = drag;
     document.removeEventListener('touchmove', preventTouch);
     card.style.transition = 'transform .22s cubic-bezier(.2,.8,.2,1)';
     card.style.transform = '';
-    const ordered = cards().map(node => node.dataset.groupId);
+    const ids = order.map(node => node.dataset.groupId);
     drag = null;
     setTimeout(() => {
       card.classList.remove('is-dragging');
       card.style.transition = '';
       document.body.classList.remove('is-reordering');
-      ctx.commit(state => reorderGroups(state, ordered));
+      ctx.commit(state => reorderGroups(state, ids));
     }, 230);
   };
   grid.addEventListener('pointerup', finish);
