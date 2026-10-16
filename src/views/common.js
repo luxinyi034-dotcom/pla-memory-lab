@@ -2,12 +2,19 @@ import { esc, icon } from '../ui/dom.js';
 import { masteryTone, categoryLabel } from '../core/selectors.js';
 import { diffAnswer } from '../core/grading.js';
 
+// The English word set in the serif display face beside each Chinese page title.
+const DISPLAY_WORD = {
+  LIBRARY: 'Library', 'MASTERY & PLAN': 'Plan', 'QUICK CHECK': 'Quick check', FAVORITES: 'Favourites',
+  'CHECK-IN': 'Check-in', SETTINGS: 'Settings', VERSIONS: 'Versions', 'DUE REVIEW': 'Review',
+  'NEW LEARNING': 'New words', EXPRESSION: 'Expression', EDIT: 'Edit', ADD: 'Add',
+};
+
 export function pageHead({ eyebrow, title, sub = '', actions = '', backHref = null, backLabel = '返回' }) {
+  const word = eyebrow ? DISPLAY_WORD[eyebrow] ?? eyebrow : '';
   return `<header class="page-head">
     <div class="page-head-text">
       ${backHref ? `<a class="back-link" href="${esc(backHref)}">${icon('back')}<span>${esc(backLabel)}</span></a>` : ''}
-      ${eyebrow ? `<div class="eyebrow">${esc(eyebrow)}</div>` : ''}
-      <h1>${esc(title)}</h1>
+      <h1>${word ? `<span class="h-en">${esc(word)}</span>` : ''}<span class="h-zh">${esc(title)}</span></h1>
       ${sub ? `<p class="page-sub">${sub}</p>` : ''}
     </div>
     ${actions ? `<div class="page-head-actions">${actions}</div>` : ''}

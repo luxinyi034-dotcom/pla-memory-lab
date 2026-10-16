@@ -6,6 +6,7 @@ import {
 } from '../core/selectors.js';
 import { isResumable, flowTotals } from '../core/study.js';
 import { pageHead, segmented, masteryPill, progressBar, emptyState } from './common.js';
+import { penArt } from '../ui/art.js';
 
 export function todayStats(state, ix) {
   const today = todayKey();
@@ -65,22 +66,18 @@ export const todayView = {
     const pct = s.total ? Math.round(s.done / s.total * 100) : 0;
     const arrow = '<svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';
 
-    const R = 46; const C = 2 * Math.PI * R;
     const week = Array.from({ length: 7 }, (_, i) => addDaysKey(s.today, i - 6));
     const head = `<header class="today-hero">
       <div class="hero-text">
-        <div class="eyebrow">${englishDate(s.today)}</div>
-        <h1>今日学习</h1>
-        <p class="hero-greet">${greeting()}，${s.total - s.done > 0 ? `今天还有 <b>${s.total - s.done}</b> 条在等你` : '今天的任务都完成了'}${s.minutes ? `，大约 ${s.minutes} 分钟。` : '。'}</p>
-        <a href="#/checkin" class="week-strip" aria-label="最近 7 天打卡">
-          ${week.map(day => `<span class="wk ${state.checkins.includes(day) ? 'is-on' : ''} ${day === s.today ? 'is-today' : ''}"><i></i><small>${'日一二三四五六'[new Date(`${day}T12:00:00Z`).getUTCDay()]}</small></span>`).join('')}
-          <span class="wk-note">${checked ? '今日已打卡' : '完成新学自动打卡'}<b>连续 ${streakDays} 天</b></span>
-        </a>
+        <p class="hero-greet">${greeting()} · ${s.total - s.done > 0 ? `还有 <b>${s.total - s.done}</b> 条在等你${s.minutes ? `，大约 ${s.minutes} 分钟` : ''}` : '今天的任务都完成了'}</p>
+        <h1><span class="h-en">Today</span><span class="h-zh">今日学习</span></h1>
+        <div class="hero-progress" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100" aria-label="今日完成度">
+          <span class="hero-date">${englishDate(s.today)}</span>
+          <span class="hero-bar"><i style="width:${pct}%"></i></span>
+          <span class="hero-count">今日完成 <b>${s.done}</b> / ${s.total}</span>
+        </div>
       </div>
-      <div class="hero-ring" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100">
-        <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="${R}" class="ring-track"/><circle cx="60" cy="60" r="${R}" class="ring-fill" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct / 100)}" transform="rotate(-90 60 60)"/></svg>
-        <div class="ring-center"><b>${pct}<small>%</small></b><span>${s.done} / ${s.total}</span></div>
-      </div>
+      <div class="hero-art">${penArt('hero-pen')}<p class="hero-motto">Persuade<br />with<br />precision.</p></div>
     </header>`;
 
     const resume = resumable ? `<a class="resume-line" href="#/study">
@@ -89,26 +86,40 @@ export const todayView = {
         <span class="resume-go">继续 ${arrow}</span></a>` : '';
 
     const reviewCount = s.reviewPending.length;
+    const shownGroups = due.slice(0, 4);
     const reviewTask = `<article class="task is-review">
-      <div class="task-label"><span>到期复习</span><span>${reviewRunning ? '进行中' : `${due.length} 组`}</span></div>
+      <div class="task-label"><span class="pill-label">到期复习</span><span class="pill-count">${reviewRunning ? '进行中' : `${due.length} 组`}</span></div>
       <div class="task-num">${reviewRunning ? flowTotals(resumable).total - flowTotals(resumable).done : reviewCount || s.reviewDone.length}</div>
-      <p class="task-sub">${reviewRunning ? '还剩这些没默写，退出时的位置已保存'
-        : reviewCount ? '按最早学习时间排列，先认读，再整组默写'
+      <p class="task-lead">${reviewRunning ? '条还没默写' : reviewCount ? '条表达 · 按最早学习时间排好' : s.reviewDone.length ? '条今日已复习' : '条到期复习'}</p>
+      <p class="task-sub">${reviewRunning ? '退出时的位置已保存，回来接着写'
+        : reviewCount ? '先认读，再整组默写；写错的本组最后再写一次'
         : s.reviewDone.length ? '今日复习已完成' : '今天没有到期复习，新学内容第 1 天开始复习'}</p>
-      <div class="task-actions">${reviewRunning ? `<a class="btn btn-primary" href="#/study">继续复习 ${arrow}</a>`
-        : reviewCount ? `<a class="btn btn-primary" href="#/review">开始复习 ${arrow}</a>`
-        : '<a class="btn" href="#/quick">快速刷词</a>'}</div>
+      ${!reviewRunning && shownGroups.length ? `<div class="task-groups">${shownGroups.map(entry => `<span>${esc(entry.group.name)}</span>`).join('')}${due.length > shownGroups.length ? `<span class="is-more">+${due.length - shownGroups.length} 组</span>` : ''}</div>` : ''}
+      <div class="task-actions">${reviewRunning ? `<a class="btn btn-primary btn-large" href="#/study">继续复习 ${arrow}</a>`
+        : reviewCount ? `<a class="btn btn-primary btn-large" href="#/review">开始复习 ${arrow}</a>`
+        : '<a class="btn btn-large" href="#/quick">快速刷词</a>'}</div>
     </article>`;
 
+    const targets = ['20', '40', '60', '100'];
+    const mode = state.settings.newTargetMode ?? String(state.settings.newTarget ?? 20);
+    const showTargets = !newRunning && !s.newDone.length;
     const newTask = `<article class="task is-new">
-      <div class="task-label"><span>今日新学</span><span>${categoryLabel(category)}</span></div>
-      <div class="task-num">${newRunning ? flowTotals(resumable).total : s.newDone.length || s.newPlanned}</div>
+      <div class="task-label"><span class="pill-label">今日新学</span><span class="task-cat">${categoryLabel(category)} · 按导入顺序推荐整组</span></div>
+      <div class="task-row">
+        <div class="task-num">${newRunning ? flowTotals(resumable).total : s.newDone.length || s.newPlanned}</div>
+        ${showTargets ? `<div class="target-chips" role="group" aria-label="新学目标">${targets.map(value => `<button type="button" class="${mode === value ? 'is-active' : ''}" data-action="set-target" data-value="${value}" aria-pressed="${mode === value}">${value}</button>`).join('')}</div>` : ''}
+      </div>
       <p class="task-sub">${newRunning ? `${resumable.queue.length} 组，已默写 ${flowTotals(resumable).done} 条`
-        : s.newDone.length ? '今日新学已完成，已自动打卡' : `按最早导入顺序推荐完整分组 · 目标 ${state.settings.newTarget ?? 20} 条`}</p>
-      <div class="task-actions">${newRunning ? `<a class="btn btn-primary" href="#/study">继续新学 ${arrow}</a><a class="text-link" href="#/new">重新选择</a>`
-        : s.newDone.length ? '<a class="btn" href="#/new">再学一组</a>'
-        : `<a class="btn ${reviewCount || reviewRunning ? '' : 'btn-primary'}" href="#/new">选择新学</a>`}</div>
+        : s.newDone.length ? '今日新学已完成，已自动打卡' : `目标 ${state.settings.newTarget ?? 20} 条 · 完成后自动打卡`}</p>
+      <div class="task-actions">${newRunning ? `<a class="btn btn-cream" href="#/study">继续新学 ${arrow}</a><a class="text-link" href="#/new">重新选择</a>`
+        : s.newDone.length ? '<a class="btn btn-cream" href="#/new">再学一组</a>'
+        : `<a class="btn btn-cream" href="#/new">选择新学 ${arrow}</a>`}</div>
     </article>`;
+
+    const streakCard = `<a class="task is-streak" href="#/checkin">
+      <div class="streak-top"><b>${streakDays}</b><span>天连续打卡</span><small>${checked ? '今日已打卡' : '完成新学自动打卡'}</small></div>
+      <div class="week-dots">${week.map(day => `<span class="wk ${state.checkins.includes(day) ? 'is-on' : ''} ${day === s.today ? 'is-today' : ''}"><i>${state.checkins.includes(day) ? '✓' : ''}</i><small>${'日一二三四五六'[new Date(`${day}T12:00:00Z`).getUTCDay()]}</small></span>`).join('')}</div>
+    </a>`;
 
     const mistakes = (state.dailyMistakes[s.today] ?? []).filter(item => item?.expressionID && ix.exprById.has(item.expressionID));
     const tab = (value, label) => `<button type="button" class="text-tab ${ui.tab === value ? 'is-active' : ''}" data-action="today-tab" data-value="${value}">${label}</button>`;
@@ -135,7 +146,7 @@ export const todayView = {
     return `<div class="page page-today">
       ${head}
       ${resume}
-      <section class="task-grid">${reviewTask}${newTask}</section>
+      <section class="task-grid">${reviewTask}<div class="task-side">${newTask}${streakCard}</div></section>
       <section class="today-list">
         <div class="list-head"><h2>今日词表</h2>${tab('list', '全部')}${tab('wrong', `错词 ${mistakes.length}`)}
           <span class="spacer"></span>
@@ -147,6 +158,7 @@ export const todayView = {
   },
   actions: {
     'today-tab': (el, ctx) => { ctx.ui.tab = el.dataset.value; ctx.rerender(); },
+    'set-target': (el, ctx) => { ctx.commit(state => { state.settings.newTargetMode = el.dataset.value; state.settings.newTarget = Number(el.dataset.value); }); },
     'toggle-fold': (el, ctx) => {
       const key = el.dataset.key;
       ctx.ui.open = ctx.ui.open.includes(key) ? ctx.ui.open.filter(item => item !== key) : [...ctx.ui.open, key];

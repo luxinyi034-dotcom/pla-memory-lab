@@ -4,6 +4,7 @@ import { $, esc, icon, toast } from './ui/dom.js';
 import { todayKey } from './core/time.js';
 import { dueExpressions, streak } from './core/selectors.js';
 import { views } from './views/index.js';
+import { LOGO } from './ui/art.js';
 
 const NAV = [
   ['today', '今日学习', 'today', '#/today'],
@@ -69,7 +70,9 @@ function renderNav(activeArea) {
     return `<a href="${href}" class="nav-item ${activeArea === area ? 'is-active' : ''}" ${activeArea === area ? 'aria-current="page"' : ''}><span class="nav-label">${label}</span>${badge}</a>`;
   }).join('');
   const foot = $('#side-foot');
-  if (foot) foot.innerHTML = `<b>${streak(store.state.checkins, today)}</b>天连续打卡${checked ? '' : ' · 今日未打卡'}<br />累计 ${store.state.checkins.length} 天<br /><a href="#/versions">版本目录</a>`;
+  if (foot) foot.innerHTML = `<a class="side-streak ${checked ? 'is-done' : ''}" href="#/checkin"><b>${streak(store.state.checkins, today)}</b><span>天连续打卡</span><small>${checked ? '今日已打卡' : '今日还没打卡'} · 累计 ${store.state.checkins.length} 天</small></a><a class="side-versions" href="#/versions">版本目录</a>`;
+  const brand = $('#brand');
+  if (brand && !brand.dataset.ready) { brand.insertAdjacentHTML('afterbegin', LOGO); brand.dataset.ready = '1'; }
 }
 
 export function render({ keepScroll = false } = {}) {
