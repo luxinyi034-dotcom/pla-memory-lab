@@ -1159,3 +1159,10 @@ mark.ans-wrong { background: var(--blush); color: var(--ink); border-radius: 6px
 }
 .backup-side .button-row { display: grid; grid-template-columns: 1fr; gap: 10px; }
 .backup-side .button-row .btn { width: 100%; }
+
+/* Versions list (settings + version directory) */
+.versions-panel { grid-column: 1 / -1; }
+.version-list { gap: 8px; }
+.version-row { align-items: center; }
+.version-row .word-en .tag { margin-left: 6px; vertical-align: 2px; }
+.version-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; flex: none; }

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { dayKey, setClock, addDaysKey, setPausedDays, addActiveDays } from '../src/core/time.js';
 import { blankProgress, recordNew, recordReview, nodeStatus, isDue, nextDueDay, mastery, completeReviewsForDay } from '../src/core/srs.js';
-import { applyMigrations, applyUndoCatchup, UNDO_MIGRATION, applyGapMigration, GAP_MIGRATION, normalizeState, mergeImport, replaceImport, validateState, buildExport, countState, contentHash } from '../src/core/model.js';
+import { applyMigrations, applyRegularSchedule, REGULAR_MIGRATION, applyUndoCatchup, UNDO_MIGRATION, applyGapMigration, GAP_MIGRATION, normalizeState, mergeImport, replaceImport, validateState, buildExport, countState, contentHash } from '../src/core/model.js';
 import { buildIndex, recommendGroups, newLearningGroups, dueGroups, streak, canMakeup, groupNodeStatus } from '../src/core/selectors.js';
 import { gradeAnswer, diffAnswer } from '../src/core/grading.js';
 import { claimMakeup, addToWrongBook, deleteGroups, reorderGroups, importRecords } from '../src/core/actions.js';
@@ -245,7 +245,8 @@ test('undoing the 2026-10-15 one-click catch-up: removes only those records, no 
   const attemptsBefore = state.progress.reduce((n, p) => n + p.accuracyAttempts.length, 0);
   const learned = state.progress.filter(p => p.firstLearnedAt).length;
   const errors = state.progress.reduce((n, p) => n + p.errorCount, 0);
-  const result = applyMigrations(state, { now: '2026-10-16T01:00:00Z' }); // morning of the 16th, Beijing
+  applyGapMigration(state, { now: '2026-10-16T01:00:00Z' });
+  const result = { undo: applyUndoCatchup(state, { now: '2026-10-16T01:00:00Z' }) }; // morning of the 16th, Beijing
   assert.equal(result.undo.undone, 232);
   assert.equal(result.undo.kept, 0);
   const attemptsAfter = state.progress.reduce((n, p) => n + p.accuracyAttempts.length, 0);
@@ -262,4 +263,59 @@ test('undoing the 2026-10-15 one-click catch-up: removes only those records, no 
   assert.equal(counts[today], 89, 'first day back = the usual 89');
   assert.equal(applyUndoCatchup(state), null, 'idempotent');
   setPausedDays([]);
+});
+
+test('regular schedule: late reviews filed on their due day, accidental ones dropped, 10-16 starts over', async () => {
+  const { nodeDueDay } = await import('../src/core/srs.js');
+  const state = normalizeState(seed.state);
+  setClock('2026-10-16T03:00:00Z');
+  applyGapMigration(state, { now: '2026-10-16T03:00:00Z' });
+  applyUndoCatchup(state, { now: '2026-10-16T03:00:00Z' });
+  setPausedDays(state.pausedDays);
+  // Simulate a session earlier on 10-16: one review and one new word.
+  const reviewed = state.progress.find(p => p.firstLearnedAt && dayKey(p.firstLearnedAt) === '2026-10-06');
+  const before = { idx: reviewed.intervalIndex, attempts: reviewed.accuracyAttempts.length, errors: reviewed.errorCount };
+  recordReview(reviewed, false, '2026-10-16T02:00:00Z');
+  const learnedIDs = new Set(state.progress.map(p => p.expressionID));
+  const fresh = blankProgress(state.expressions.find(e => !learnedIDs.has(e.id)).id);
+  state.progress.push(fresh);
+  recordNew(fresh, true, '2026-10-16T02:30:00Z');
+  state.checkins.push('2026-10-16');
+  state.dailyMistakes['2026-10-16'] = [{ expressionID: reviewed.expressionID, source: 'review' }];
+  const counts = countState(state);
+
+  const report = applyRegularSchedule(state, { now: '2026-10-16T03:00:00Z' });
+  assert.equal(report.moved, 26, 'the 13 late items: node 0 and node 1 each refiled');
+  assert.equal(report.dropped, 1, 'the stray review on paused 10-11');
+  assert.equal(report.unlearned, 1);
+  assert.equal(report.checkinRemoved, true);
+  for (const p of state.progress.filter(item => item.firstLearnedAt)) {
+    for (const a of p.accuracyAttempts) {
+      const m = /^node:(\d+):(.+)$/.exec(a.key);
+      if (m) assert.equal(m[2], nodeDueDay(p, Number(m[1])), `${a.key} on schedule`);
+    }
+  }
+  assert.equal(reviewed.intervalIndex, before.idx);
+  assert.equal(reviewed.accuracyAttempts.length, before.attempts);
+  assert.equal(reviewed.errorCount, before.errors);
+  assert.equal(state.progress.find(p => p.expressionID === fresh.expressionID).firstLearnedAt, null);
+  assert.ok(!state.checkins.includes('2026-10-16'));
+  assert.equal(state.dailyMistakes['2026-10-16'], undefined);
+  const after = countState(state);
+  assert.equal(after.groups, counts.groups); assert.equal(after.expressions, counts.expressions);
+  assert.equal(after.learned, 232);
+  assert.equal(applyRegularSchedule(state), null, 'idempotent');
+  assert.ok(state.migrations[REGULAR_MIGRATION]);
+  setClock(null);
+});
+
+test('regular schedule opened on a later day still starts 10-16 over', () => {
+  const state = normalizeState(seed.state);
+  applyGapMigration(state, { now: '2026-10-17T03:00:00Z' });
+  applyUndoCatchup(state, { now: '2026-10-17T03:00:00Z' });
+  setPausedDays(state.pausedDays);
+  state.checkins.push('2026-10-16');
+  const report = applyRegularSchedule(state, { now: '2026-10-17T03:00:00Z' });
+  assert.equal(report.checkinRemoved, true);
+  assert.ok(!state.checkins.includes('2026-10-16'));
 });

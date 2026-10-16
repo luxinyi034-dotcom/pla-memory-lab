@@ -11,6 +11,14 @@
   <meta name="description" content="VCE EAL 论证分析（PLA）表达与词汇记忆实验室" />
   <title>PLA Memory Lab</title>
   <link rel="manifest" href="./manifest.webmanifest" />
+  <script>
+    // Open the version chosen in Settings → 版本 (设为默认), unless the latest is asked for.
+    try {
+      var key = 'pla-preferred-version';
+      if (/[?&]latest\b/.test(location.search)) { localStorage.removeItem(key); history.replaceState(null, '', location.pathname + location.hash); }
+      else { var pref = localStorage.getItem(key); if (pref && /^versions\/[\w.-]+\/$/.test(pref)) location.replace(pref + location.hash); }
+    } catch (e) { /* storage unavailable: just open the latest */ }
+  </script>
   <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="./icons/icon-180.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />

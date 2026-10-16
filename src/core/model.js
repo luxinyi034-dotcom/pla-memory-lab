@@ -1,5 +1,8 @@
 // State shape, normalisation, import (merge / replace) and export.
 // Everything here is pure (no DOM) so it can be unit-tested in Node.
+import { applyRegularSchedule, REGULAR_MIGRATION } from './cleanup.js';
+
+export { applyRegularSchedule, REGULAR_MIGRATION };
 
 export const APP_NAME = 'PLA Memory Lab';
 export const SCHEMA_VERSION = 1;
@@ -335,13 +338,15 @@ export function applyUndoCatchup(state, { now = new Date().toISOString() } = {})
   return { undone, removedAttempts, kept, idleDays: idle.length };
 }
 
+export const MIGRATION_KEYS = [GAP_MIGRATION, UNDO_MIGRATION, REGULAR_MIGRATION];
+
 export function hasPendingMigrations(state) {
-  return !state.migrations?.[GAP_MIGRATION] || !state.migrations?.[UNDO_MIGRATION];
+  return MIGRATION_KEYS.some(key => !state.migrations?.[key]);
 }
-export const MIGRATION_KEYS = [GAP_MIGRATION, UNDO_MIGRATION];
 
 export function applyMigrations(state, options = {}) {
   const gap = applyGapMigration(state, options);
   const undo = applyUndoCatchup(state, options);
-  return gap || undo ? { gap, undo } : null;
+  const regular = applyRegularSchedule(state, options);
+  return gap || undo || regular ? { gap, undo, regular } : null;
 }
