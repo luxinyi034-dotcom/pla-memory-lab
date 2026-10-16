@@ -290,3 +290,58 @@ export function applyGapMigration(state, { now = new Date().toISOString() } = {}
   state.migrations[GAP_MIGRATION] = now;
   return { paused: paused.length, checkinsAdded: missing.length };
 }
+
+export const UNDO_MIGRATION = 'undo-catchup-2026-10-15-v1';
+const CATCHUP_DAY = '2026-10-15';
+const CATCHUP_MINUTE = '2026-10-15T13:49';
+
+/**
+ * On 2026-10-15 an old one-click "catch-up" marked every learned expression as
+ * reviewed (all correct) in a single minute. Those were not real answers. This
+ * removes exactly those records: each affected expression goes back one review
+ * node and loses that one auto attempt. Anything reviewed for real since then
+ * (last reviewed time no longer inside that minute) is left alone.
+ * It also keeps the days between then and now (when nothing was studied) out
+ * of the schedule, so what is due on the first day back shows as today's review
+ * instead of overdue.
+ */
+export function applyUndoCatchup(state, { now = new Date().toISOString() } = {}) {
+  state.migrations ??= {};
+  if (state.migrations[UNDO_MIGRATION]) return null;
+  let undone = 0; let removedAttempts = 0; let kept = 0;
+  for (const p of state.progress) {
+    const idx = p.intervalIndex ?? 0;
+    const key = `node:${idx - 1}:${CATCHUP_DAY}`;
+    const at = (p.accuracyAttempts ?? []).findIndex(item => item.key === key);
+    if (at < 0 || !String(p.lastReviewedAt ?? '').startsWith(CATCHUP_MINUTE)) {
+      if ((p.accuracyAttempts ?? []).some(item => item.key.startsWith('node:') && item.key.endsWith(`:${CATCHUP_DAY}`))) kept += 1;
+      continue;
+    }
+    p.accuracyAttempts.splice(at, 1);
+    p.intervalIndex = idx - 1;
+    const last = p.accuracyAttempts[p.accuracyAttempts.length - 1];
+    p.lastAttemptCorrect = last ? Boolean(last.correct) : p.firstAttemptCorrect;
+    p.needsStrengthening = last ? !last.correct : false;
+    const lastDay = [...p.accuracyAttempts].reverse().map(item => item.key.match(/(\d{4}-\d{2}-\d{2})$/)?.[1]).find(Boolean);
+    p.lastReviewedAt = lastDay ? `${lastDay}T12:00:00+08:00` : p.firstLearnedAt;
+    undone += 1; removedAttempts += 1;
+  }
+  // Idle days since the one-click catch-up do not count either.
+  const today = new Date(new Date(now).getTime() + 6 * 3600 * 1000).toISOString().slice(0, 10);
+  const touched = new Set(state.progress.flatMap(p => [p.firstLearnedAt?.slice(0, 10), ...(p.accuracyAttempts ?? []).map(item => item.key.match(/(\d{4}-\d{2}-\d{2})$/)?.[1])]).filter(Boolean));
+  const idle = today > CATCHUP_DAY ? daysBetween(CATCHUP_DAY, new Date(Date.parse(`${today}T00:00:00Z`) - 86400000).toISOString().slice(0, 10)).filter(day => !touched.has(day)) : [];
+  state.pausedDays = [...new Set([...(state.pausedDays ?? []), ...idle])].sort();
+  state.migrations[UNDO_MIGRATION] = now;
+  return { undone, removedAttempts, kept, idleDays: idle.length };
+}
+
+export function hasPendingMigrations(state) {
+  return !state.migrations?.[GAP_MIGRATION] || !state.migrations?.[UNDO_MIGRATION];
+}
+export const MIGRATION_KEYS = [GAP_MIGRATION, UNDO_MIGRATION];
+
+export function applyMigrations(state, options = {}) {
+  const gap = applyGapMigration(state, options);
+  const undo = applyUndoCatchup(state, options);
+  return gap || undo ? { gap, undo } : null;
+}

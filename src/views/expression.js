@@ -33,7 +33,7 @@ export const detailView = {
     const track = REVIEW_INTERVALS.map((days, node) => {
       const status = nodeStatus(progress, node, today);
       const due = nodeDueDay(progress, node);
-      return `<li class="node is-${status}"><span class="node-name">${NODE_LABELS[node]}</span><span class="node-date">${due ? shortDayLabel(due) : '—'}</span><span class="node-state">${({ done: '完成', today: '今日', overdue: '逾期', future: '未到', locked: '—' })[status]}</span></li>`;
+      return `<li class="node is-${status}"><span class="node-name">${NODE_LABELS[node]}</span><span class="node-date">${due ? shortDayLabel(due) : '—'}</span><span class="node-state">${({ done: '完成', today: '今日', overdue: '今日', future: '未到', locked: '—' })[status]}</span></li>`;
     }).join('');
     const attempts = (progress?.accuracyAttempts ?? []).slice().reverse().slice(0, 12).map(item => {
       const [kind, a, b] = String(item.key).split(':');

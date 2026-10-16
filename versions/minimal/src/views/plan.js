@@ -16,10 +16,10 @@ function nodeCell(ix, group, node, today) {
   const status = groupNodeStatus(ix, group.id, node, today);
   const items = ix.exprsByGroup.get(group.id) ?? [];
   const dates = items.map(item => nodeDueDay(ix.progressById.get(item.id), node)).filter(Boolean).sort();
-  const label = { done: '完成', today: '今日', overdue: '逾期', locked: '—' }[status] ?? (dates[0] ? shortDayLabel(dates[0]) : '未到');
+  const label = { done: '完成', today: '今日', overdue: '今日', locked: '—' }[status] ?? (dates[0] ? shortDayLabel(dates[0]) : '未到');
   const clickable = status === 'today' || status === 'overdue';
   return `<td class="node-cell">${clickable
-    ? `<button type="button" class="node-chip is-${status}" data-action="start-node" data-id="${group.id}" data-node="${node}" title="点击开始复习本组">${label}</button>`
+    ? `<button type="button" class="node-chip is-today" data-action="start-node" data-id="${group.id}" data-node="${node}" title="点击开始复习本组">${label}</button>`
     : `<span class="node-chip is-${status}">${status === 'done' ? icon('check') : ''}${label}</span>`}</td>`;
 }
 

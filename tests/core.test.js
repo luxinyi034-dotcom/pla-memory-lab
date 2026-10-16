@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { dayKey, setClock, addDaysKey, setPausedDays, addActiveDays } from '../src/core/time.js';
 import { blankProgress, recordNew, recordReview, nodeStatus, isDue, nextDueDay, mastery, completeReviewsForDay } from '../src/core/srs.js';
-import { applyGapMigration, GAP_MIGRATION, normalizeState, mergeImport, replaceImport, validateState, buildExport, countState, contentHash } from '../src/core/model.js';
+import { applyMigrations, applyUndoCatchup, UNDO_MIGRATION, applyGapMigration, GAP_MIGRATION, normalizeState, mergeImport, replaceImport, validateState, buildExport, countState, contentHash } from '../src/core/model.js';
 import { buildIndex, recommendGroups, newLearningGroups, dueGroups, streak, canMakeup, groupNodeStatus } from '../src/core/selectors.js';
 import { gradeAnswer, diffAnswer } from '../src/core/grading.js';
 import { claimMakeup, addToWrongBook, deleteGroups, reorderGroups, importRecords } from '../src/core/actions.js';
@@ -236,5 +236,30 @@ test('gap migration fills check-ins, pauses the break, keeps learning records, i
   assert.ok(dueAfter < overdueBefore, `due today should drop (${overdueBefore} -> ${dueAfter})`);
   assert.equal(applyGapMigration(state), null, 'second run does nothing');
   assert.ok(state.migrations[GAP_MIGRATION]);
+  setPausedDays([]);
+});
+
+test('undoing the 2026-10-15 one-click catch-up: removes only those records, no overdue, normal first day', () => {
+  const state = normalizeState(seed.state);
+  setPausedDays([]);
+  const attemptsBefore = state.progress.reduce((n, p) => n + p.accuracyAttempts.length, 0);
+  const learned = state.progress.filter(p => p.firstLearnedAt).length;
+  const errors = state.progress.reduce((n, p) => n + p.errorCount, 0);
+  const result = applyMigrations(state, { now: '2026-10-16T01:00:00Z' }); // morning of the 16th, Beijing
+  assert.equal(result.undo.undone, 232);
+  assert.equal(result.undo.kept, 0);
+  const attemptsAfter = state.progress.reduce((n, p) => n + p.accuracyAttempts.length, 0);
+  assert.equal(attemptsBefore - attemptsAfter, 232);
+  assert.equal(state.progress.filter(p => p.firstLearnedAt).length, learned);
+  assert.equal(state.progress.reduce((n, p) => n + p.errorCount, 0), errors, 'error counts untouched');
+  assert.ok(state.progress.every(p => !p.accuracyAttempts.some(a => a.key.endsWith(':2026-10-15'))));
+  assert.ok(state.pausedDays.includes('2026-10-15'), 'idle day since the catch-up is paused');
+  setPausedDays(state.pausedDays);
+  const today = '2026-10-16'; const counts = {};
+  state.progress.forEach(p => { const d = nextDueDay(p); if (d) counts[d] = (counts[d] ?? 0) + 1; });
+  const overdue = Object.entries(counts).filter(([d]) => d < today).reduce((n, [, c]) => n + c, 0);
+  assert.equal(overdue, 0, 'nothing overdue');
+  assert.equal(counts[today], 89, 'first day back = the usual 89');
+  assert.equal(applyUndoCatchup(state), null, 'idempotent');
   setPausedDays([]);
 });
