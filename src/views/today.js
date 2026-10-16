@@ -1,4 +1,5 @@
-import { esc, icon } from '../ui/dom.js';
+import { esc, icon, toast, downloadFile } from '../ui/dom.js';
+import { buildExport } from '../core/model.js';
 import { todayKey, addDaysKey, nowMs } from '../core/time.js';
 import {
   buildIndex, todayNewItems, todayReviewedItems, dueExpressions, dueGroups, sectionByGroup, masteryOf,
@@ -85,6 +86,16 @@ export const todayView = {
         <span class="resume-text"><b>继续上次${resumable.type === 'new' ? '新学' : '复习'}${resumable.repeat ? '（再次巩固）' : ''}</b>第 ${resumable.gi + 1} / ${resumable.queue.length} 组 · 已默写 ${flowTotals(resumable).done} / ${flowTotals(resumable).total} 条，位置已保存</span>
         <span class="resume-go">继续 ${arrow}</span></a>` : '';
 
+    // Weekly nudge to keep a copy off this browser (Safari can clear site data).
+    const lastExport = ctx.store.meta.lastExportAt;
+    const daysSinceExport = lastExport ? Math.floor((Date.now() - Date.parse(lastExport)) / 86400000) : null;
+    const backupNudge = (daysSinceExport == null || daysSinceExport >= 7) && ctx.store.meta.backupNudgeDay !== s.today
+      ? `<div class="backup-line">
+          <span class="backup-text"><b>${lastExport ? `已经 ${daysSinceExport} 天没导出备份了` : '还没有导出过备份'}</b>本机每天会自动存快照；再导出一份存到「文件」或 iCloud，换设备、清理浏览器也不怕。</span>
+          <button type="button" class="btn btn-small btn-primary" data-action="export-backup">${icon('download')} 导出备份</button>
+          <button type="button" class="text-link" data-action="dismiss-backup">今天先不</button>
+        </div>` : '';
+
     const reviewCount = s.reviewPending.length;
     const shownGroups = due.slice(0, 4);
     const reviewTask = `<article class="task is-review">
@@ -146,6 +157,7 @@ export const todayView = {
     return `<div class="page page-today">
       ${head}
       ${resume}
+      ${backupNudge}
       <section class="task-grid">${reviewTask}<div class="task-side">${newTask}${streakCard}</div></section>
       <section class="today-list">
         <div class="list-head"><h2>今日词表</h2>${tab('list', '全部')}${tab('wrong', `错词 ${mistakes.length}`)}
@@ -158,6 +170,14 @@ export const todayView = {
   },
   actions: {
     'today-tab': (el, ctx) => { ctx.ui.tab = el.dataset.value; ctx.rerender(); },
+    'export-backup': async (el, ctx) => {
+      const payload = await buildExport(ctx.state);
+      downloadFile(`PLA-Memory-Lab-backup-${todayKey()}.json`, JSON.stringify(payload, null, 2));
+      ctx.store.setMeta({ lastExportAt: payload.exportedAt });
+      toast('备份已导出，可在「文件」App 的下载项中找到', 'success');
+      ctx.rerender();
+    },
+    'dismiss-backup': (el, ctx) => { ctx.store.setMeta({ backupNudgeDay: todayKey() }); ctx.rerender(); },
     'set-target': (el, ctx) => { ctx.commit(state => { state.settings.newTargetMode = el.dataset.value; state.settings.newTarget = Number(el.dataset.value); }); },
     'toggle-fold': (el, ctx) => {
       const key = el.dataset.key;

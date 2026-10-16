@@ -129,7 +129,7 @@ function handleInput(event) {
 }
 
 async function boot() {
-  await store.load();
+  await store.load('v3');
   lastDay = todayKey();
   if (!location.hash) history.replaceState(null, '', '#/today');
   const main = $('#main');

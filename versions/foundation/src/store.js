@@ -7,7 +7,7 @@ import { todayKey, nowISO } from './core/time.js';
 const STORAGE_KEY = 'pla-memory-lab-state';
 const META_KEY = 'pla-memory-lab-meta';
 const DB_NAME = 'pla-memory-lab';
-const SNAPSHOT_LIMIT = 10;
+const SNAPSHOT_LIMIT = 30;
 
 const listeners = new Set();
 let saveTimer = null;
@@ -67,7 +67,10 @@ export const store = {
     try { raw = localStorage.getItem(STORAGE_KEY); } catch { raw = null; }
     if (raw) {
       try {
-        this.state = normalizeState(JSON.parse(raw));
+        const parsed = JSON.parse(raw);
+        // Keep the data as the newer versions left it before this archived copy touches it.
+        if (this.meta.appVersion !== 'v1') await snapshotBeforeOpen(parsed).catch(() => {});
+        this.state = normalizeState(parsed);
         validateState(this.state);
         this.source = 'local';
       } catch (error) {
@@ -91,12 +94,22 @@ export const store = {
       } catch (error) { console.warn('No seed data', error); }
     }
     this.ix = buildIndex(this.state);
+    this.setMeta({ appVersion: 'v1', appVersionSeenAt: nowISO() });
     if (this.source !== 'local') this.saveNow();
     try { await navigator.storage?.persist?.(); } catch { /* optional */ }
   },
 };
 
 // ---------- IndexedDB daily snapshots (safety net, newest 10 kept) ----------
+
+async function snapshotBeforeOpen(state) {
+  const db = await openDB();
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction('snapshots', 'readwrite');
+    tx.objectStore('snapshots').put({ day: `${todayKey()} · 打开 v1 前`, savedAt: nowISO(), state });
+    tx.oncomplete = resolve; tx.onerror = () => reject(tx.error);
+  });
+}
 
 function openDB() {
   return new Promise((resolve, reject) => {
@@ -120,7 +133,7 @@ async function dailySnapshot(state) {
     get.onsuccess = () => {
       if (!get.result) os.put({ day, savedAt: nowISO(), state: JSON.parse(JSON.stringify(state)) });
       const keys = os.getAllKeys();
-      keys.onsuccess = () => keys.result.sort().slice(0, Math.max(0, keys.result.length - SNAPSHOT_LIMIT)).forEach(key => os.delete(key));
+      keys.onsuccess = () => { const daily = keys.result.filter(key => /^\d{4}-\d{2}-\d{2}$/.test(key)).sort(); daily.slice(0, Math.max(0, daily.length - SNAPSHOT_LIMIT)).forEach(key => os.delete(key)); };
     };
     tx.oncomplete = resolve; tx.onerror = () => reject(tx.error);
   });
