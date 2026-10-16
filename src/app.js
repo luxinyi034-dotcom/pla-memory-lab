@@ -6,7 +6,7 @@ import { dueExpressions, streak } from './core/selectors.js';
 import { views } from './views/index.js';
 import { LOGO } from './ui/art.js';
 
-export const APP_VERSION = 'v4.0.2';
+export const APP_VERSION = 'v4.1.0';
 
 const NAV = [
   ['today', '今日学习', 'today', '#/today'],
@@ -134,7 +134,7 @@ function handleInput(event) {
 }
 
 async function boot() {
-  await store.load();
+  await store.load(APP_VERSION);
   lastDay = todayKey();
   if (!location.hash) history.replaceState(null, '', '#/today');
   const main = $('#main');

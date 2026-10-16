@@ -150,9 +150,9 @@ export const settingsView = {
             <label class="btn file-btn">${icon('upload')} 导入备份…<input type="file" accept=".json,application/json" data-change="import" hidden /></label>
           </div>
           <h3 class="sub-title">自动快照</h3>
-          <p class="muted small">每天第一次保存时，会在本机额外留一份快照（最多 10 天），用于意外时找回。</p>
+          <p class="muted small">每天打开网站时会在本机自动存一份快照（保留 30 天）；每次换到新版本或打开其他版本之前，也会先存一份（保留最近 10 次）。都可以在这里一键恢复。</p>
           <div class="snapshot-list">${ui.snapshots == null ? '<p class="muted small">读取中…</p>'
-            : ui.snapshots.length ? ui.snapshots.map(snap => `<div class="snapshot"><span>${esc(snap.day)}</span><small>${snap.state?.expressions?.length ?? 0} 条 · 已学 ${(snap.state?.progress ?? []).filter(item => item.firstLearnedAt).length}</small><button type="button" class="btn btn-small btn-ghost" data-action="restore-snapshot" data-day="${esc(snap.day)}">恢复到这天</button></div>`).join('')
+            : ui.snapshots.length ? ui.snapshots.map(snap => `<div class="snapshot"><span>${esc(snap.day)}</span><small>${snap.state?.expressions?.length ?? 0} 条 · 已学 ${(snap.state?.progress ?? []).filter(item => item.firstLearnedAt).length}</small><button type="button" class="btn btn-small btn-ghost" data-action="restore-snapshot" data-day="${esc(snap.day)}">恢复这份</button></div>`).join('')
             : '<p class="muted small">还没有快照。</p>'}</div>
         </section>
 

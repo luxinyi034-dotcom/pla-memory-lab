@@ -8,7 +8,9 @@ import { todayKey, nowISO, setPausedDays } from './core/time.js';
 const STORAGE_KEY = 'pla-memory-lab-state';
 const META_KEY = 'pla-memory-lab-meta';
 const DB_NAME = 'pla-memory-lab';
-const SNAPSHOT_LIMIT = 10;
+const DAILY_LIMIT = 30;   // automatic daily snapshots kept
+const VERSION_LIMIT = 10; // "before opening version X" snapshots kept
+const VERSION_TAG = ' · 打开 ';
 
 const listeners = new Set();
 let saveTimer = null;
@@ -64,13 +66,23 @@ export const store = {
     try { localStorage.setItem(META_KEY, JSON.stringify(this.meta)); } catch { /* ignore */ }
   },
 
-  async load() {
+  /**
+   * Read the saved data. `appVersion` names the copy of the site doing the
+   * reading; when it differs from the last one that opened this data, the
+   * untouched data is kept as a snapshot first, so a new release (or an older
+   * archived version) can never silently lose anything.
+   */
+  async load(appVersion = 'unknown') {
     try { this.meta = JSON.parse(localStorage.getItem(META_KEY) ?? '{}') ?? {}; } catch { this.meta = {}; }
     let raw = null;
     try { raw = localStorage.getItem(STORAGE_KEY); } catch { raw = null; }
     if (raw) {
       try {
-        this.state = normalizeState(JSON.parse(raw));
+        const parsed = JSON.parse(raw);
+        if (this.meta.appVersion !== appVersion) {
+          await saveVersionSnapshot(`${todayKey()}${VERSION_TAG}${appVersion} 前`, parsed).catch(error => console.warn('Version snapshot failed', error));
+        }
+        this.state = normalizeState(parsed);
         validateState(this.state);
         this.source = 'local';
       } catch (error) {
@@ -93,10 +105,13 @@ export const store = {
         }
       } catch (error) { console.warn('No seed data', error); }
     }
+    this.setMeta({ appVersion, appVersionSeenAt: nowISO() });
     const migrated = prepareState(this.state);
     this.ix = buildIndex(this.state);
     this.migrated = migrated;
     if (this.source !== 'local' || migrated) this.saveNow();
+    // A daily copy even on days with no studying.
+    await dailySnapshot(this.state).catch(() => {});
     try { await navigator.storage?.persist?.(); } catch { /* optional */ }
   },
 };
@@ -122,6 +137,20 @@ function prepareState(state) {
   return result;
 }
 
+/** Keep a snapshot taken before a different version opened the data; prune to the newest few. */
+async function saveVersionSnapshot(day, state) {
+  await saveNamedSnapshot(day, state);
+  const all = await listSnapshots();
+  const versions = all.filter(snap => snap.day.includes(VERSION_TAG)).sort((a, b) => (b.savedAt ?? '').localeCompare(a.savedAt ?? ''));
+  if (versions.length <= VERSION_LIMIT) return;
+  const db = await openDB();
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction('snapshots', 'readwrite');
+    versions.slice(VERSION_LIMIT).forEach(snap => tx.objectStore('snapshots').delete(snap.day));
+    tx.oncomplete = resolve; tx.onerror = () => reject(tx.error);
+  });
+}
+
 async function saveNamedSnapshot(day, state) {
   const db = await openDB();
   await new Promise((resolve, reject) => {
@@ -131,7 +160,7 @@ async function saveNamedSnapshot(day, state) {
   });
 }
 
-// ---------- IndexedDB daily snapshots (safety net, newest 10 kept) ----------
+// ---------- IndexedDB daily snapshots (safety net, newest 30 kept) ----------
 
 function openDB() {
   return new Promise((resolve, reject) => {
@@ -158,7 +187,7 @@ async function dailySnapshot(state) {
       keys.onsuccess = () => {
         // Only prune the automatic daily ones; named safety snapshots stay.
         const daily = keys.result.filter(key => /^\d{4}-\d{2}-\d{2}$/.test(key)).sort();
-        daily.slice(0, Math.max(0, daily.length - SNAPSHOT_LIMIT)).forEach(key => os.delete(key));
+        daily.slice(0, Math.max(0, daily.length - DAILY_LIMIT)).forEach(key => os.delete(key));
       };
     };
     tx.oncomplete = resolve; tx.onerror = () => reject(tx.error);
