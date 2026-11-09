@@ -154,7 +154,7 @@ def rebuild_index(root):
     lines = ['# 导入历史', '',
              '每次往 App 导入的新词都放在这里：一批一个文件夹，名字是“日期 来源”。', '',
              '- `导入用-新增.xlsx`：在 iPad 上打开 App → 表达库 → 导入 Excel，选这个文件。',
-             '- `导入用-补充旧组.xlsx`：同样导入；分组名和 App 里的旧组一样时，会加进旧组。',
+             '- `导入用-补充旧组.xlsx`（只有少数批次有）：同样导入；分组名和 App 里的旧组一样时，会加进旧组。尽量不动旧组，确实有新用法才用。',
              '- `阅读版.pdf`：没带本子时在电脑上看。',
              '- `data.py`：原始数据。改了它以后运行 `python tools/import_history.py "导入历史/<文件夹>"`，重新生成上面三个文件。',
              '', '| 日期 | 来源 | 新增 | 补进旧组 | 已导入到 iPad |', '|---|---|---|---|---|']
@@ -173,8 +173,11 @@ def main():
     check(mod.GROUPS)
     check(mod.SUPPLEMENTS)
     write_xlsx(folder / '导入用-新增.xlsx', mod.GROUPS)
+    supp = folder / '导入用-补充旧组.xlsx'
     if mod.SUPPLEMENTS:
-        write_xlsx(folder / '导入用-补充旧组.xlsx', mod.SUPPLEMENTS)
+        write_xlsx(supp, mod.SUPPLEMENTS)
+    elif supp.exists():
+        supp.unlink()
     write_pdf(folder / '阅读版.pdf', mod)
     rebuild_index(folder.parent)
     print(f'{folder.name}: 新增 {sum(len(g[2]) for g in mod.GROUPS)} 条 / {len(mod.GROUPS)} 组；'
